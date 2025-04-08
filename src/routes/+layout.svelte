@@ -1,0 +1,87 @@
+<div class="main-layout">
+	<Header />
+
+	<div class="main-layout__cols">
+		<aside class="main-layout__sidebar">
+			<div class="main-layout__sticky-wrapper">
+				{#if isLoggedIn}
+					<Sidebar />
+				{:else}
+					<LoginForm />
+				{/if}
+				<div class="divider"></div>
+				<div>
+					<a href="https://github.com/h2xdev/vt">
+						Contribute
+					</a>
+				</div>
+			</div>
+		</aside>
+
+		<slot />
+	</div>
+
+	<MediaViewer />
+</div>
+
+<script>
+import { onMount } from 'svelte';
+import { TelegramService, TelegramServiceEvents } from '$lib/telegram.service';
+
+import Header from '$components/Header.svelte';
+import Sidebar from '$components/Sidebar.svelte';
+import LoginForm from '$components/LoginForm.svelte';
+import MediaViewer from '$components/MediaViewer.svelte';
+
+let isLoggedIn = false;
+
+onMount(async () => {
+	const service = new TelegramService();
+	isLoggedIn = await service.isLoggedIn();
+
+	service.on(TelegramServiceEvents.AUTHORIZED, () => {
+		isLoggedIn = true;
+	});
+
+	service.on(TelegramServiceEvents.UNAUTHORIZED, () => {
+		isLoggedIn = false;
+	});
+})
+</script>
+
+<style lang="scss">
+@use '../styles/variables.scss';
+@use '../styles/layout.scss';
+@use '../styles/ui.scss';
+@use '../styles/typography.scss';
+@use '../styles/mono_iconset.scss';
+
+.main-layout {
+	max-width: var(--container-width);
+	margin: 0 auto;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+
+	&__cols {
+		display: grid;
+		grid-template-columns: 140px 1fr;
+		flex: 1;
+	}
+
+	&__sidebar {
+		padding: var(--gap);
+		border-right: 1px solid var(--color-border);
+		font-size: 12px;
+	}
+
+	&__sticky-wrapper {
+		position: sticky;
+		top: calc(var(--gap) + 43px);
+		display: flex;
+		flex-direction: column;
+		gap: var(--gap);
+	}
+}
+</style>

@@ -1,0 +1,47 @@
+$icons: (
+  "person": 0,
+  "plus": 1,
+  "camera": 2,
+  "speaker": 3,
+  "gear": 4,
+  "movie": 5,
+  "group": 6,
+  "gift": 7,
+  "star": 8,
+  "doc": 9,
+  "file": 10,
+  "home": 11,
+  "heart": 12,
+  "comment": 13,
+  "stats": 14,
+  "music": 15,
+  "share": 16,
+  "repost": 17,
+  "screenshot": 18,
+  "file2": 19,
+  "comment2": 20,
+  "phone": 21,
+  "case": 22,
+  "time": 23,
+  "search": 24,
+  "smile": 25,
+);
+
+:global {
+  @each $name, $value in $icons {
+    $additional: 0;
+
+    @if $value > 12 {
+      $additional: 0.45;
+    }
+
+    .monoiconset-#{$name} {
+      background: url('/icons/mono_iconset.png');
+      background-position: 0 -#{$value * (12 + 3 - $additional)}px;
+      width: 12px;
+      height: 12px;
+      display: inline-block;
+      background-size: 12px;
+    }
+  }
+}

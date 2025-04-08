@@ -1,0 +1,30 @@
+// FIXME Organize naming
+
+:global {
+  body {
+	  font-family: tahoma, arial, verdana, sans-serif, Lucida Sans;
+	  font-size: 11px;
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+
+	.page-headline {
+		font-size: 12px;
+    	font-weight: 700;
+    	color: var(--color-main);
+    	margin: 0;
+	}
+
+  .t-main {
+  	color: var(--color-main-dark);
+    font-weight: 700;
+  }
+
+  .small-text {
+  	font-size: 11px;
+  }
+
+  .small-text-hint {
+  	font-size: 11px;
+  	color: var(--color-gray);
+  }
+}

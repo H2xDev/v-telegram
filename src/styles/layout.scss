@@ -1,0 +1,45 @@
+:global(body) {
+	margin: 0;
+	padding: 0;
+	overflow-y: scroll;
+}
+
+:global {
+	.f {
+	  display: flex;
+	
+	  &--a {
+	    flex: auto;
+	  }
+	
+	  &--g {
+	    &-base {
+	      gap: var(--gap);
+	    }
+	
+	    &-small {
+	      gap: var(--gap-small);
+	    }
+	
+	    &-large {
+	      gap: var(--gap-large);
+	    }
+	  }
+	
+	  &--c {
+	    flex-direction: column;
+	  }
+	
+	  &--aic {
+	    align-items: center;
+	  }
+	
+	  &--ais {
+	    align-items: stretch;
+	  }
+	
+	  &--sb {
+	    justify-content: space-between;
+	  }
+	}
+}
