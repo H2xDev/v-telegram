@@ -11,7 +11,7 @@
 				{/if}
 				<div class="divider"></div>
 				<div>
-					<a href="https://github.com/h2xdev/vt">
+					<a href="https://github.com/h2xdev/v-telegram" target="_blank">
 						Contribute
 					</a>
 				</div>
