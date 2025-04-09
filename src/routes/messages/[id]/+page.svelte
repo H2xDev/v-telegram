@@ -27,7 +27,7 @@
         placeholder="Enter your message here..."
         onkeyup={handleEnter}
         onkeydown={preventNewLine}
-      />
+      ></textarea>
 
       <div class="messenger__input-actions">
         <button class="inline">
@@ -89,9 +89,12 @@
   }
 
   const onScroll = (e: Event) => {
-    const scrollHeight = Math.max(0, e.target.scrollHeight - e.target!.offsetHeight);
+    const { target } = e as unknown as { target: HTMLDivElement };
+    if (!target) return;
+
+    const scrollHeight = Math.max(0, target.scrollHeight - target!.offsetHeight);
     if (isLoading) return;
-    if (-e.target!.scrollTop < scrollHeight - 100) return;
+    if (-target!.scrollTop < scrollHeight - 100) return;
 
     loadMoreMessages();
   }

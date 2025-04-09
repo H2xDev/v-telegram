@@ -34,7 +34,8 @@
         class="video__play-button clear" 
         class:video__play-button--big={!isLoading}
         onclick={playVideo}
-      />
+        aria-label={isPlaying ? 'Pause' : 'Play'}
+      ></button>
     {/if}
   
     {#if isLoading}
@@ -48,7 +49,7 @@
         <button 
           class="video__play-button clear" 
           onclick={playVideo}
-        />
+        ></button>
   
         <TrackControl 
           bind:value={percent}
@@ -67,7 +68,7 @@
         </div>
   
         <button class="video__fullscreen-button clear" onclick={goFullscreen}>
-          <img src="/icons/ic-fullscreen.png" alt="Fullscreen">
+          <img src="/icons/ic-fullscreen.png" alt="Fullscreen" />
         </button>
       </div>
     {/if}
@@ -76,7 +77,7 @@
   {#if !hideTitle }
     <div class="video-container__footer">
       <div class="video-container__title">
-        <div class="monoiconset-movie" /> { post.video.filename }
+        <div class="monoiconset-movie"></div> { post.video.filename }
       </div>
 
       <div class="video-container__views-label">
@@ -207,8 +208,6 @@
   }
 
   onMount(loadPoster);
-
-  console.log(post);
 </script>
 
 <style lang="scss">
@@ -251,10 +250,6 @@
 
     &--preview {
       aspect-ratio: var(--aspect);
-    }
-
-    .fas {
-      font-size: 16px;
     }
 
     video {

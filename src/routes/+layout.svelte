@@ -10,10 +10,13 @@
 					<LoginForm />
 				{/if}
 				<div class="divider"></div>
-				<div>
+				<div class="main-layout__sidebar-footer">
 					<a href="https://github.com/h2xdev/v-telegram" target="_blank">
 						Contribute
 					</a>
+          <p class="small-text-hint">
+            Commit: { GIT_COMMIT_HASH?.substr(0, 8) }
+          </p>
 				</div>
 			</div>
 		</aside>
@@ -34,6 +37,7 @@ import LoginForm from '$components/LoginForm.svelte';
 import MediaViewer from '$components/MediaViewer.svelte';
 
 let isLoggedIn = false;
+const GIT_COMMIT_HASH = import.meta.env.VITE_GIT_COMMIT_HASH || 'unknown';
 
 onMount(async () => {
 	const service = new TelegramService();
@@ -75,6 +79,12 @@ onMount(async () => {
 		border-right: 1px solid var(--color-border);
 		font-size: 12px;
 	}
+
+  &__sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-small);
+  }
 
 	&__sticky-wrapper {
 		position: sticky;

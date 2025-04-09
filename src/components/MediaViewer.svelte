@@ -124,19 +124,6 @@
     flex-direction: column;
   }
 
-  &__title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--color-border);
-    margin: 0 var(--gap);
-    padding-top: var(--gap-small);
-  }
-
-  &--video &__title {
-    display: none;
-  }
-
   &__content {
     padding: var(--gap);
   }
@@ -146,15 +133,6 @@
     aspect-ratio: var(--aspect-ratio);
     width: 100%;
     position: relative;
-  }
-
-  &__photo {
-    position: absolute;
-    top: 0;
-    left: 0;
-    aspect-ratio: var(--aspect-ratio);
-    width: 100%;
-    object-fit: contain;
   }
 
   &__info {

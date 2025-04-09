@@ -21,6 +21,10 @@
           {#if subPost.photo}
             <Photo post={subPost} openInViewer />
           {/if}
+
+          {#if subPost.round}
+            <RoundVideo post={subPost} />
+          {/if}
         {/each}
       </div>
     {/if}
@@ -36,14 +40,15 @@
   import Avatar from "./Avatar.svelte";
   import Video from "./Video.svelte";
   import Photo from "./Photo.svelte";
+  import RoundVideo from "./RoundVideo.svelte";
 
   interface Props {
     post: MessageModel;
   }
 
   let { post }: Props = $props();
-  const hasAttachments = $derived(post.group.some((p) => p.video || p.photo));
-  const isMultipleAttachments = post.group.length > 1 && hasAttachments;
+  const hasAttachments = $derived(post.group.some((p) => p.video || p.photo || p.round));
+  const isMultipleAttachments = $derived(post.group.length > 1 && hasAttachments);
 </script>
 
 <style lang="scss">

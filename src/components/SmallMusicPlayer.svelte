@@ -9,14 +9,15 @@
     <button
       class="clear music-player__play-button"
       onclick={play}
-    />
+      aria-label={isPlaying ? 'Pause' : 'Play'}
+    ></button>
 
     <div class="music-player__info">
-      <p class="music-player__artist">
+      <p class="music-player__artist" title={post.music.artist}>
         {post.music.artist.slice(0, 20) + (post.music.artist.length > 20 ? '...' : '')}
       </p>
       –
-      <p class="music-player__title">
+      <p class="music-player__title" title={post.music.songName}>
         {post.music.songName}
       </p>
 
@@ -26,7 +27,8 @@
     </div>
 
     {#if isPlaying}
-      <div class="music-player__track" onmousedown={dragNail} />
+      <div class="music-player__track" onmousedown={dragNail} role="slider" tabindex="-1" aria-valuenow={percent}>
+      </div>
     {/if}
   </div>
 </div>

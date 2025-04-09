@@ -160,12 +160,6 @@
 			gap: var(--gap);
 		}
 
-		&__content-headline {
-			display: flex;
-			flex-direction: column;
-			gap: var(--gap-small);
-		}
-
     &__bio-section {
       display: flex;
       flex-direction: column;

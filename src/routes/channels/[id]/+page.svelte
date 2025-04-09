@@ -127,27 +127,5 @@
         border-left: 1px solid var(--color-light);
       }
     }
-
-    &__last-photos,
-    &__last-videos {
-      padding: 0 var(--gap);
-
-      :global(img),
-      :global(.video) {
-        aspect-ratio: 2 / 1;
-      }
-    }
-
-    &__spinner-container {
-      padding: var(--gap);
-      padding-left: 60px;
-      display: flex;
-      justify-content: center;
-    }
-
-    &__photo {
-      aspect-ratio: 1 / 1;
-      width: 100%;
-    }
   }
 </style>

@@ -5,8 +5,10 @@
   class="round-video"
   bind:this={videoEl}
   onmouseover={unmute}
+  onfocus={unmute}
   onmouseout={mute}
-/>
+  onblur={mute}
+></video>
 
 <script lang="ts">
   import { getNearScrollableElement } from "$lib/utils";

@@ -1,5 +1,6 @@
 import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import { gitCommitHashPlugin } from 'vite-plugin-git-commit-hash';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -19,6 +20,11 @@ const config = {
       $models: 'src/models',
     },
 	},
+  env: {
+    GIT_COMMIT_HASH: {
+      public: true,
+    },
+  },
 };
 
 export default config;

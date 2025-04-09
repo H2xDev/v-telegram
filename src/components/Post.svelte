@@ -71,7 +71,7 @@
   let { post, compact, noTitle, repost }: Props = $props();
   const hasAttachments = $derived(post.group.some((p) => p.video || p.photo || p.round));
   const hasMusic = $derived(post.group.some(p => p.music));
-  const isMultipleAttachments = post.group.length > 1 && hasAttachments;
+  const isMultipleAttachments = $derived(post.group.length > 1 && hasAttachments);
 </script>
 
 <style lang="scss">

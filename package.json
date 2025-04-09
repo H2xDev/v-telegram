@@ -11,7 +11,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "eslint .",
-    "deploy": "git checkout deployment && git merge master && yarn build && firebase deploy && git add . && git commit -m 'deploy' && git checkout master"
+		"deploy": "git checkout deployment && git merge master && yarn build && firebase deploy && git add . && git commit -m 'deploy' && git checkout master"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -29,9 +29,12 @@
 		"vite": "^6.0.0"
 	},
 	"dependencies": {
+		"@sveltejs/adapter-static": "^3.0.8",
+		"@types/node": "^22.14.0",
 		"class-transformer": "^0.5.1",
 		"reflect-metadata": "^0.2.2",
 		"telegram": "^2.26.22",
+		"vite-plugin-git-commit-hash": "^1.0.7",
 		"vite-plugin-node-polyfills": "^0.23.0"
 	}
 }
