@@ -28,6 +28,7 @@
 		"vite": "^6.0.0"
 	},
 	"dependencies": {
+		"@sveltejs/adapter-static": "^3.0.8",
 		"class-transformer": "^0.5.1",
 		"reflect-metadata": "^0.2.2",
 		"telegram": "^2.26.22",
