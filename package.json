@@ -10,7 +10,8 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"lint": "eslint ."
+		"lint": "eslint .",
+    "deploy": "git checkout deployment && git merge master && yarn build && firebase deploy && git add . && git commit -m 'deploy' && git checkout master"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -28,7 +29,6 @@
 		"vite": "^6.0.0"
 	},
 	"dependencies": {
-		"@sveltejs/adapter-static": "^3.0.8",
 		"class-transformer": "^0.5.1",
 		"reflect-metadata": "^0.2.2",
 		"telegram": "^2.26.22",
