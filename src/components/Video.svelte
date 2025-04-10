@@ -40,7 +40,7 @@
   
     {#if isLoading}
       <div class="video__spinner-container">
-        <Spinner />
+        <VkSpinner />
       </div>
     {/if}
   
@@ -53,7 +53,7 @@
   
         <TrackControl 
           bind:value={percent}
-          onTrackState={handlePlayPosition}
+          onDragStateChange={handlePlayPosition}
           counter={counter + " / " + formatTime(post.video?.duration)} 
         />
   
@@ -93,7 +93,7 @@
   import { VideoModel } from "../models/video.model";
 
   import TrackControl from "./TrackControl.svelte";
-  import Spinner from "./Spinner.svelte";
+  import VkSpinner from "./VkSpinner.svelte";
   import { onMount } from "svelte";
   import { MediaService } from "$lib/media.service";
 

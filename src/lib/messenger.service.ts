@@ -132,7 +132,7 @@ export class MessengerService extends EventHandler<MessengerServiceEventsDeclara
 		this.trigger(MessengerServiceEvents.MESSAGE_ADDED, post);
 	}
 
-	async sendMessage(chatId: number, message: string) {
+	async sendMessage(chatId: number | string, message: string) {
 		const msg = await this.telegramService.client.sendMessage(chatId, {
 			message,
 		});

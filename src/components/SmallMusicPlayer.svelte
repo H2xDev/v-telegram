@@ -11,25 +11,32 @@
       onclick={play}
       aria-label={isPlaying ? 'Pause' : 'Play'}
     ></button>
+  </div>
 
-    <div class="music-player__info">
-      <p class="music-player__artist" title={post.music.artist}>
-        {post.music.artist.slice(0, 20) + (post.music.artist.length > 20 ? '...' : '')}
-      </p>
-      –
-      <p class="music-player__title" title={post.music.songName}>
-        {post.music.songName}
-      </p>
+  <div class="music-player__info">
+    <p class="music-player__artist" title={post.music.artist}>
+      {post.music.artist.slice(0, 20) + (post.music.artist.length > 20 ? '...' : '')}
+    </p>
+    –
+    <p class="music-player__title" title={post.music.songName}>
+      {post.music.songName}
+    </p>
 
-      <p class="music-player__duration">
-        {isPlaying ? playedTime : formatTime(post.music.duration)}
-      </p>
-    </div>
+    <p class="music-player__duration">{isPlaying ? playedTime : formatTime(post.music.duration)}
+    </p>
+  </div>
 
-    {#if isPlaying}
-      <div class="music-player__track" onmousedown={dragNail} role="slider" tabindex="-1" aria-valuenow={percent}>
-      </div>
-    {/if}
+  <div class="music-player__track-controls">
+    <TrackControl 
+      class="music-player__timeline"
+      bind:value={percent}
+      onDragStateChange={onNailStateChanged}
+    />
+
+    <TrackControl 
+      class="music-player__volume-control"
+      bind:value={volume}
+    />
   </div>
 </div>
 
@@ -38,6 +45,7 @@
   import { formatTime } from "$lib/utils";
   import type { MessageModel } from "$models/message.model";
   import { onDestroy, onMount } from "svelte";
+  import TrackControl from "./TrackControl.svelte";
 
   interface Props {
     post: MessageModel;
@@ -50,9 +58,10 @@
   const music = musicService.getAudio(post.music!)
 
   let isPlaying = $state(music ? !music.paused : false);
+  let isDragging = $state(false);
   let percent = $state((music?.currentTime || 0) / post.music!.duration);
   let playedTime = $state('');
-  let isDragging = $state(false);
+  let volume = $state(0.5);
 
   const play = () => {
     if (!music) return;
@@ -65,30 +74,27 @@
     music.pause();
   };
 
-  const dragNail = (e: MouseEvent) => {
-    const el = e.target as HTMLElement;
-    isDragging = true;
+  const onNailStateChanged = (dragState: boolean) => {
+    if (!post.music || !music) return;
 
-    const mouseMove = (m: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
-      const x = m.clientX - rect.left;
-      percent = Math.max(0, Math.min(1, x / rect.width));
+    if (!dragState) {
+      music.currentTime = percent * post.music?.duration;
     }
 
-    mouseMove(e);
-
-    window.addEventListener('mousemove', mouseMove);
-    window.addEventListener('mouseup', () => {
-      window.removeEventListener('mousemove', mouseMove);
-      music.currentTime = percent * post.music.duration;
-
-      isDragging = false;
-    }, { once: true });
+    isDragging = dragState;
   }
 
   const updateProgress = () => {
+    if (!music || !post.music) return;
+
     if (!isDragging) {
       percent = music.currentTime / post.music.duration;
+
+      if (percent >= 1) {
+        percent = 0;
+        music.currentTime = 0;
+        music.pause();
+      }
     }
 
     playedTime = formatTime((1 - percent) * post.music!.duration);
@@ -102,17 +108,11 @@
     isPlaying = true;
   }
 
-  const onFinish = () => {
-    isPlaying = false;
-    music.currentTime = 0;
-  }
-
   onMount(() => {
     if (!music) return;
     music.addEventListener('play', onPlay)
     music.addEventListener('pause', onPause)
     music.addEventListener('timeupdate', updateProgress)
-    music.addEventListener('ended', onFinish);
   });
 
   onDestroy(() => {
@@ -120,41 +120,54 @@
     music.removeEventListener('playing', onPlay)
     music.removeEventListener('pause', onPause)
     music.removeEventListener('timeupdate', updateProgress)
-    music.removeEventListener('ended', onFinish);
   });
 </script>
 
 <style lang="scss">
   .music-player {
     --percent: 0;
-
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    align-items: center;
+    grid-template-columns: 16px 1fr;
     gap: var(--gap-small);
-    padding: var(--gap-small);
-    border-radius: 2px;
+    width: 100%;
+    box-sizing: border-box;
+    grid-template-areas: 
+      'controls info'
+      'controls track';
+
+    &:not(&--big):not(&--playing) {
+      grid-template-areas: 
+        'controls info';
+    }
 
     &:hover {
       background-color: #EDF1F5;
     }
 
-    &__controls {
-      display: grid;
-      align-items: center;
-      grid-template-columns: 16px 1fr;
+    &--playing,
+    &--big {
       grid-template-areas: 
-        'play-button info';
-
-      gap: var(--gap);
-      width: 100%;
-      box-sizing: border-box;
+        'controls info'
+        'controls track';
     }
 
-    &--playing &__controls {
-      align-items: flex-start;
-      grid-template-areas: 
-        'play-button info'
-        'play-button track';
+    &__controls {
+      display: flex;
+      align-items: center;
+      grid-area: controls;
+    }
+
+    &__track-controls {
+      display: flex;
+      align-items: center;
+      gap: var(--gap);
+      width: 100%;
+      grid-area: track;
+    }
+
+    &:not(&--big):not(&--playing) &__track-controls {
+      display: none;
     }
 
     &__play-button {
@@ -168,7 +181,6 @@
       padding: 0;
       cursor: pointer;
       flex-shrink: 0;
-      grid-area: play-button;
     }
 
     &--playing &__play-button {
@@ -181,6 +193,10 @@
       gap: 5px;
       flex: auto;
       grid-area: info;
+    }
+
+    &--big &__info {
+      padding-right: 74px;
     }
 
     &__artist {
@@ -202,47 +218,37 @@
       font-size: 0.9em;
     }
 
-    &__track {
-      position: relative;
-      height: 5px;
-      grid-area: track;
+    :global &__timeline {
+      --track-bg-color: var(--color-bg) !important;
+      --track-fg-color: var(--color-main) !important;
+    }
 
-      &::before {
-        content: '';
-        display: block;
-        height: 1px;
-        background-color: var(--color-bg);
-      }
+    :global &__volume-control {
+      max-width: 60px;
+      --track-bg-color: var(--color-bg) !important;
+      --track-fg-color: var(--color-main) !important;
+    }
 
-      &::after { // nail
-        content: '';
-        height: 5px;
-        width: 15px;
-        display: block;
-        background-color: var(--color-main);
-        margin-top: -1px;
-        left: calc(100% * var(--percent));
-        margin-left: calc(-15px * var(--percent));
-        position: relative;
-      }
+    &:not(&--big) :global &__volume-control {
+      display: none;
     }
 
     &--big {
       padding: 12px 10px;
+      grid-template-columns: 22px 1fr;
+      gap: var(--gap-small) var(--gap);
     }
 
     &--big:where(&--playing) &__play-button {
       background-position-y: -22px;
     }
+
+    &--not-supported {
+      opacity: 0.5;
+    }
   }
 
   .music-player--big .music-player {
-    &__controls {
-      padding: 0;
-      grid-template-columns: 22px 1fr;
-      gap: var(--gap-small) var(--gap);
-    }
-
     &__track::before {
       height: 4px;
       border-radius: 2px;

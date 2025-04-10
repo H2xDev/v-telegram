@@ -73,7 +73,6 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
 
 	async getPosts(id: any, lastPostId?: number) {
 		const newPosts = [];
-    console.log(newPosts);
 
 		for await (const post of this.telegramService.client.iterMessages(id, {
 			limit: POSTS_PAGE_LIMIT,
@@ -90,6 +89,10 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
 	}
 
 	async getChannelList() {
+    if (this.channels.length) {
+      return this.channels;
+    }
+
 		const list = (await this.telegramService.client.getDialogs())
 			.filter((d) => d.isChannel && !d.isGroup)
 

@@ -9,7 +9,9 @@
 				{:else}
 					<LoginForm />
 				{/if}
-				<div class="divider"></div>
+
+        <VkDivider class="divider" />
+
 				<div class="main-layout__sidebar-footer">
 					<a href="https://github.com/h2xdev/v-telegram" target="_blank">
 						Contribute
@@ -21,39 +23,45 @@
 			</div>
 		</aside>
 
-		<slot />
+    {#key page.url}
+      {@render children?.()}
+    {/key}
 	</div>
 
 	<MediaViewer />
 </div>
 
 <script>
-import { onMount } from 'svelte';
-import { TelegramService, TelegramServiceEvents } from '$lib/telegram.service';
+  import { onMount } from 'svelte';
+  import { page } from '$app/state';
+  import { TelegramService, TelegramServiceEvents } from '$lib/telegram.service';
+  
+  import Header from '$components/Header.svelte';
+  import Sidebar from '$components/Sidebar.svelte';
+  import LoginForm from '$components/LoginForm.svelte';
+  import MediaViewer from '$components/MediaViewer.svelte';
+  import VkDivider from '$components/VkDivider.svelte';
 
-import Header from '$components/Header.svelte';
-import Sidebar from '$components/Sidebar.svelte';
-import LoginForm from '$components/LoginForm.svelte';
-import MediaViewer from '$components/MediaViewer.svelte';
+  let { children } = $props();
 
-let isLoggedIn = false;
-const GIT_COMMIT_HASH = import.meta.env.VITE_GIT_COMMIT_HASH || 'unknown';
-
-onMount(async () => {
-	const service = new TelegramService();
-	isLoggedIn = await service.isLoggedIn();
-
-	service.on(TelegramServiceEvents.AUTHORIZED, () => {
-		isLoggedIn = true;
-	});
-
-	service.on(TelegramServiceEvents.UNAUTHORIZED, () => {
-		isLoggedIn = false;
-	});
-})
+  let isLoggedIn = $state(false);
+  const GIT_COMMIT_HASH = import.meta.env.VITE_GIT_COMMIT_HASH || 'unknown';
+  
+  onMount(async () => {
+  	const service = new TelegramService();
+  	isLoggedIn = await service.isLoggedIn();
+  
+  	service.on(TelegramServiceEvents.AUTHORIZED, () => {
+  		isLoggedIn = true;
+  	});
+  
+  	service.on(TelegramServiceEvents.UNAUTHORIZED, () => {
+  		isLoggedIn = false;
+  	});
+  })
 </script>
 
-<style lang="scss">
+<style lang="scss" global>
 @use '../styles/variables.scss';
 @use '../styles/layout.scss';
 @use '../styles/ui.scss';

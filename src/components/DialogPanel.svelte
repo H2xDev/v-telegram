@@ -1,5 +1,5 @@
 <div class="dialog" class:dialog--unread={dialog.unreadCount}>
-  <Avatar class="dialog__avatar" id={`${dialog.id}`} />
+  <VkAvatar class="dialog__avatar" id={`${dialog.id}`} />
   <div class="dialog__info">
     <a class="dialog__name" href="/{dialog.user.username || dialog.user.id}">{dialog.title}</a>
     <div class="dialog__online-status"></div>
@@ -18,7 +18,7 @@
 
 <script lang="ts">
   import type { DialogModel } from "../models/dialog.model";
-  import Avatar from "./Avatar.svelte";
+  import VkAvatar from "./VkAvatar.svelte";
 
   interface Props {
     dialog: DialogModel;

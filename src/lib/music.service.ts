@@ -21,9 +21,10 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
   static instance = new MusicService;
 	private telegramService = new TelegramService;
 
-  mediaSources: Record<string, MediaSource> = {};
-  audioElements: Record<string, HTMLAudioElement> = {};
+  private musicLists: Record<string, MessageModel[]> = {};
   private currentMusic_: MusicModel | null = null;
+  private mediaSources: Record<string, MediaSource> = {};
+  private audioElements: Record<string, HTMLAudioElement> = {};
 
   get currentMusic() {
     return this.currentMusic_;
@@ -71,19 +72,23 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
   /**
    * Returns music list from the current user
    */
-  async getMusicList(offsetId?: number) {
+  async getMusicList(id: string | number = "me", offsetId?: number, search?: string) {
     const filter = new telegram.Api.InputMessagesFilterMusic()
 		const res = await this.telegramService.client.invoke(
 			new telegram.Api.messages.Search({
 				filter,
 				limit: 100,
-				peer: "me",
+				peer: id,
         offsetId,
-				q: '',
+				q: search,
 			})
     ) as { messages: any[] };
 
-		return plainToInstance(MessageModel, res.messages, { excludeExtraneousValues: true })
+		const list = plainToInstance(MessageModel, res.messages, { excludeExtraneousValues: true })
+    this.musicLists[id] ??= [];
+    this.musicLists[id] = [...this.musicLists[id], ...list];
+
+    return list;
   }
 
   /**

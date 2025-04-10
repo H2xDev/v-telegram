@@ -1,8 +1,16 @@
-<div class="spinner">
+<div class="spinner" class:spinner--dark={dark}>
   <div></div>
   <div></div>
   <div></div>
 </div>
+
+<script lang="ts">
+  interface Props {
+    dark?: boolean;
+  }
+
+  let { dark }: Props = $props();
+</script>
 
 <style lang="scss">
   .spinner {
@@ -30,6 +38,11 @@
           animation-delay: $i * 0.1s;
         }
       }
+    }
+
+    &--dark {
+      --first-color: var(--color-main);
+      --second-color: var(--color-bg);
     }
   }
 

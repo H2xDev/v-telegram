@@ -3,14 +3,14 @@
   onclick={ handleClick }
 >
   {#if isLoading}
-    <Spinner />
+    <VkSpinner />
   {:else}
     <slot />
   {/if}
 </button>
 
 <script lang="ts">
-  import Spinner from "./Spinner.svelte";
+  import VkSpinner from "./VkSpinner.svelte";
 
   interface Props {
     onclick: () => Promise<any>;

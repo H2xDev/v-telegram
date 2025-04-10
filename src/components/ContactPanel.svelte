@@ -1,5 +1,5 @@
 <div class="contact">
-  <Avatar class="contact__avatar" id={dialog.id} />
+  <VkAvatar class="contact__avatar" id={dialog.id} />
 
   <div class="contact__info">
     <a class="page-headline" href="/{dialog.user.username || dialog.user.id}">{dialog.user.fullName}</a>
@@ -12,7 +12,7 @@
 
 <script lang="ts">
   import type { DialogModel } from "../models/dialog.model";
-  import Avatar from "./Avatar.svelte";
+  import VkAvatar from "./VkAvatar.svelte";
 
   interface Props {
     dialog: DialogModel;

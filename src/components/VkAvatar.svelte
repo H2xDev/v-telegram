@@ -6,7 +6,7 @@
       class="user-avatar {clazz}"
       style:--size={size}
     >
-      <Spinner />
+      <VkSpinner />
     </div>
 {/if}
 {/key}
@@ -14,7 +14,7 @@
 <script lang="ts">
   import { UserService } from "$lib/user.service";
   import { onMount } from "svelte";
-  import Spinner from "./Spinner.svelte";
+  import VkSpinner from "./VkSpinner.svelte";
 
   const service = new UserService();
 

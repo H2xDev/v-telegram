@@ -2,7 +2,6 @@
 	<img class="header__logo" src="https://vtelege-530a8.web.app/logo.png" alt="Logo">
 
 	<nav class="header__navigation">
-		<a href="/profile">Contribute</a>
 		<a href="/logout">Logout</a>
 	</nav>
 </header>
@@ -31,5 +30,10 @@
 		justify-content: space-between;
 		gap: var(--gap);
 	}
+
+  a {
+    color: white;
+    font-weight: 700;
+  }
 }
 </style>

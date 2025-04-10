@@ -18,6 +18,8 @@ const config = {
     alias: {
       $components: 'src/components',
       $models: 'src/models',
+      $router: 'src/routes',
+      '@': 'src',
     },
 	},
   env: {

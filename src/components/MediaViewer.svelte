@@ -24,7 +24,7 @@
 
     <div class="media-viewer__info">
       <div class="media-viewer__author f f--g-base">
-        <Avatar class="media-viewer__avatar" id={post?.authorId} />
+        <VkAvatar class="media-viewer__avatar" id={post?.authorId} />
         <span class="page-headline">{post?.channel?.title}</span>
       </div>
       <div class="media-viewer__description f f--c f--g-base">
@@ -48,7 +48,7 @@
   import Video from './Video.svelte';
   import Photo from "./Photo.svelte";
   import { formatMarkdown } from "$lib/utils";
-  import Avatar from "./Avatar.svelte";
+  import VkAvatar from "./VkAvatar.svelte";
 
   const mediaService = new MediaService();
 

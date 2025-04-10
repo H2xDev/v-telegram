@@ -1,30 +1,34 @@
+<svelte:head>
+  <title>{ user?.fullName || 'Loading...' } | Profile</title>
+</svelte:head>
+
 <main class="user">
-	<p class="user__title title-bar">
+	<VkTitleBar class="user__title">
 		{#if !user}
-			<Spinner />
+			<VkSpinner />
 		{:else}
 			@{ user.username }
 		{/if}
-	</p>
+	</VkTitleBar>
 
 	<div class="user__layout">
 		<div class="user__sidebar">
-			<Avatar class="user__avatar" spinner={!user} id={page.data.id} />
+			<VkAvatar class="user__avatar" spinner={!user} id={page.params.id} />
 
 			{#if !user?.isSelf}
-				<div class="title-bar title-bar--secondary">
-					<a class="button" href="/messages/{page.data.id}">Send message</a>
-				</div>
+				<VkTitleBar secondary>
+					<VkButton href="/messages/{page.params.id}">Send message</VkButton>
+				</VkTitleBar>
 			{/if}
 
 			<div>
-				<p class="title-bar">
+				<VkTitleBar tag="p" class="title-bar">
 					Followers
-				</p>
+				</VkTitleBar>
 
-				<p class="title-bar title-bar--secondary title-bar--tiny">
+				<VkTitleBar secondary tiny>
 					{ user?.personalChannel?.subscribersCount || 0 } followers
-				</p>
+				</VkTitleBar>
 			</div>
 		</div>
 
@@ -35,9 +39,9 @@
 
       {#if user?.about}
         <section class="user__bio-section">
-			    <h2 class="divider">
+			    <VkDivider tag="h2" class="divider">
             About
-          </h2>
+          </VkDivider>
           <p>
             { user.about }
           </p>
@@ -45,9 +49,9 @@
       {/if}
 
       <section class="user__bio-section">
-			  <h2 class="divider">
+			  <VkDivider tag="h2">
 			  	Personal information
-			  </h2>
+			  </VkDivider>
 
 			  <table width="100%" cellspacing="0">
 			  	<tbody class="small-text">
@@ -84,9 +88,7 @@
 			{#if user && user?.personalChannel}
 				<ChannelPosts channel={user.personalChannel.id} title="Posts" />
 			{:else}
-				<p class="title-bar">
-					Posts
-				</p>
+        <VkTitleBar tag="p"> Posts </VkTitleBar>
 				<p class="small-text" align="center">
 					This user has no personal channel
 				</p>
@@ -96,22 +98,24 @@
 </main>
 
 <script lang="ts">
-  import { page } from '$app/state';
-  import { UserService } from '$lib/user.service';
+  import { onMount } from 'svelte';
   import type { UserModel } from '$models/user.model';
+  import { page } from '$app/state';
   
-  import Spinner from '$components/Spinner.svelte';
-  import Avatar from '$components/Avatar.svelte';
+  import VkSpinner from '$components/VkSpinner.svelte';
+  import VkAvatar from '$components/VkAvatar.svelte';
+  import VkTitleBar from '$components/VkTitleBar.svelte';
+  import VkDivider from '$components/VkDivider.svelte';
+  import VkButton from '$components/VkButton.svelte';
+
   import ChannelPosts from '$components/ChannelPosts.svelte';
-  
+  import { UserService } from '@/lib/user.service';
+
   let user: UserModel | null = $state(null);
   const age = $derived(new Date().getFullYear() - (user?.birthday ? new Date(user?.birthday).getFullYear() : 0));
   
-  const service = new UserService();
-  service.getFullUser(page.data.id).then((data) => { user = data; });
-  
-  $effect(() => {
-    service.getFullUser(page.data.id).then((data) => { user = data });
+  onMount(async () => {
+    user = await new UserService().getFullUser(page.params.id);
   });
 </script>
 
@@ -133,7 +137,7 @@
 			width: 210px;
 			flex-shrink: 0;
 			position: sticky;
-			top: calc(var(--gap) + 43px);
+      top: calc(var(--gap) + var(--header-height));
 
 			& :global(.user-avatar) {
 				width: 100%;
@@ -150,6 +154,7 @@
 			width: 100%;
 			max-width: 100%;
 			align-items: flex-start;
+      padding-top: var(--gap);
 		}
 
 		&__body {

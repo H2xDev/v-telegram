@@ -1,5 +1,4 @@
 import 'reflect-metadata';
-import * as telegram from 'telegram';
 import { Expose, plainToInstance, Transform, Type } from "class-transformer";
 import { ChannelModel } from "./channel.model";
 import { VideoModel } from './video.model';
@@ -9,7 +8,7 @@ import { MusicModel } from './music.model';
 
 export class MessageModel {
 	@Expose()
-	@Transform(({ obj }) => +obj.id)
+	@Transform(({ obj }) => +obj.id.toString())
 	id!: number;
 
 	@Expose()

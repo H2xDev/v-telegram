@@ -16,26 +16,26 @@
 
 <script lang="ts">
   interface Props {
-    onTrackState: (state: boolean) => void;
-    onTrackChange: (value: number) => void;
+    onDragStateChange: (state: boolean) => void;
+    onChange: (value: number) => void;
     value: number;
     counter: string;
     nailWidth: number;
     class: string;
   }
 
-  let { onTrackState, onTrackChange, value = $bindable(0), counter = '', nailWidth = 15, class: clazz = '' }: Props = $props();
+  let { onDragStateChange, onChange, value = $bindable(0), counter = '', nailWidth = 15, class: clazz = '' }: Props = $props();
 
   const handleTrack = (e: MouseEvent) => {
     e.preventDefault();
     const el = e.target as HTMLElement;
-    onTrackState?.(true);
+    onDragStateChange?.(true);
 
     const mouseMove = (m: MouseEvent) => {
       const rect = el.getBoundingClientRect();
       const x = m.clientX - rect.left;
       value = Math.max(0, Math.min(1, x / rect.width));
-      onTrackChange?.(value);
+      onChange?.(value);
     }
 
     mouseMove(e);
@@ -43,7 +43,7 @@
     window.addEventListener('mousemove', mouseMove);
     window.addEventListener('mouseup', () => {
       window.removeEventListener('mousemove', mouseMove);
-      onTrackState?.(false);
+      onDragStateChange?.(false);
     }, { once: true });
   }
 </script>
@@ -58,7 +58,6 @@
   position: relative;
   height: 5px;
   width: 100%;
-  margin-top: 5px;
   image-rendering: pixelated;
 
   &::before {
@@ -83,7 +82,7 @@
     height: 5px;
     width: var(--track-nail-width);
     display: block;
-    background-color: white;
+    background-color: var(--track-fg-color);
     margin-top: -1px;
     left: calc(100% * var(--track-percent));
     margin-left: calc(-1 * var(--track-nail-width) * var(--track-percent));

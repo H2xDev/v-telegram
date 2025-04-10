@@ -1,63 +1,75 @@
+<svelte:head>
+  <title>{ channel?.title || params.id } | Channel</title>
+</svelte:head>
+
 <div class="channel">
-  <div class="title-bar">
+  <VkTitleBar>
     Channel&nbsp;<i class="fas fa-bullhorn"></i>
-  </div>
+  </VkTitleBar>
+
   <div class="channel__layout">
     <div class="channel__content">
       <h1 class="page-headline">
-        { channel?.title || page.data.id }
+        { channel?.title || params.id }
       </h1>
-      <div class="divider">
+
+      <VkDivider tag="h2" class="divider">
         About
-      </div>
+      </VkDivider>
+
       {#if !isLoading}
       <p>
         {@html formatMarkdown(channel?.about) }
       </p>
       {:else}
-        <Spinner />
+        <VkSpinner />
       {/if}
 
       {#if channel?.pinnedMessage}
-        <div class="divider">
+        <VkDivider tag="h2" class="divider">
           Pinned message
-        </div>
+        </VkDivider>
 
         <Post post={channel.pinnedMessage} channel={channel} compact noTitle repost />
       {/if}
 
-      <ChannelPosts channel={page.data.id} title="Posts" />
+      <ChannelPosts channel={params.id} title="Posts" />
     </div>
 
     {#if channel}
       <div class="channel__aside">
-          <Avatar id={ channel?.id } size={200} />
+        <VkAvatar id={ channel?.id } size={200} />
 
-        <div class="title-bar title-bar--secondary">
-          {#if channel.isSubscribed}
-            <AsyncButton
-              class="button"
-              onclick={ channelService.leaveChannel.bind(channelService, channel.id) }
-            >
-              Leave channel
-            </AsyncButton>
-          {:else}
-            <AsyncButton
-              class="button"
-              onclick={ channelService.joinChannel.bind(channelService, channel.id) }
-            >
-              Join channel
-            </AsyncButton>
-          {/if}
-        </div>
+        <VkTitleBar secondary>
+          <div class="channel__menu">
+            <VkButton href="/channels/{params.id}/music">
+              Channel's music
+            </VkButton>
+
+            {#if channel.isSubscribed}
+              <VkButton
+                flat
+                onclickasync={ channelService.leaveChannel.bind(channelService, channel.id) }
+              >
+                Leave channel
+              </VkButton>
+            {:else}
+              <VkButton
+                onclickasync={ channelService.joinChannel.bind(channelService, channel.id) }
+              >
+                Join channel
+              </VkButton>
+            {/if}
+          </div>
+        </VkTitleBar>
 
         <div>
-          <p class="title-bar">
+          <VkTitleBar tag="p">
             Followers
-          </p>
-          <p class="title-bar title-bar--secondary title-bar--tiny">
+          </VkTitleBar> 
+          <VkTitleBar secondary tiny>
             { channel?.subscribersCount } followers
-          </p>
+          </VkTitleBar>
         </div>
       </div>
     {/if}
@@ -65,30 +77,35 @@
 </div>
 
 <script lang="ts">
-  import { page } from "$app/state";
   import { onDestroy } from "svelte";
   import { formatMarkdown } from "$lib/utils";
   import { ChannelService, ChannelServiceEvents } from "$lib/channel.service";
   import type { ChannelModel } from "$models/channel.model";
+  import type { PageProps } from "./$types";
 
   import ChannelPosts from "$components/ChannelPosts.svelte";
   import Post from "$components/Post.svelte";
-  import Avatar from "$components/Avatar.svelte";
-  import Spinner from "$components/Spinner.svelte";
-  import AsyncButton from "$components/AsyncButton.svelte";
+  import VkSpinner from "$components/VkSpinner.svelte";
+  import VkAvatar from "$components/VkAvatar.svelte";
+  import VkButton from "$components/VkButton.svelte";
+  import VkTitleBar from "$components/VkTitleBar.svelte";
+  import VkDivider from "$components/VkDivider.svelte";
+  import { page } from "$app/state";
 
   const channelService = new ChannelService;
+  const { params } = page;
+
   let channel: ChannelModel | null = $state(null);
   let isLoading = $state(true);
 
-  channelService.getChannel(page.data.id)
+  channelService.getChannel(params.id!)
     .then((newChannel: ChannelModel) => { channel = newChannel; })
     .finally(() => {
       isLoading = false;
     });
 
   const onChannelUpdated = (updatedChannel: ChannelModel) => {
-    if (updatedChannel.id !== page.data.id) return;
+    if (updatedChannel.id !== params.id) return;
     channel = updatedChannel;
   };
 
@@ -98,6 +115,14 @@
 <style lang="scss">
   .channel {
     padding-right: var(--gap);
+
+    &__menu {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--gap);
+      width: 100%;
+    }
 
     &__layout {
       display: flex;

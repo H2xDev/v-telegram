@@ -1,6 +1,6 @@
 <div class="message" class:message--same={post.isPreviousSame} class:message--out={post.isOut}>
   {#if !post.isPreviousSame}
-    <Avatar class="message__avatar" id={ post.fromId } />
+    <VkAvatar class="message__avatar" id={ post.fromId } />
   {/if}
   <div class="message__body">
     {#if !post.isPreviousSame}
@@ -37,7 +37,7 @@
 <script lang="ts">
   import { formatMarkdown } from "$lib/utils";
   import type { MessageModel } from "../models/message.model";
-  import Avatar from "./Avatar.svelte";
+  import VkAvatar from "./VkAvatar.svelte";
   import Video from "./Video.svelte";
   import Photo from "./Photo.svelte";
   import RoundVideo from "./RoundVideo.svelte";

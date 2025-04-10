@@ -1,34 +1,11 @@
 <div class="dialogs">
-  <div class="tabs">
-    <button
-      class="clear tabs__tab-button"
-      class:tabs__tab-button--active={currentTab === 0}
-      onclick={() => currentTab = 0}
-    >
-      Messages
-    </button>
+  <VkTabs {tabs} {currentTab} {onChangeTab} />
 
-    <button
-      class="clear tabs__tab-button"
-      class:tabs__tab-button--active={currentTab === 1}
-
-      onclick={() => currentTab = 1}
-    >
-      Chats
-    </button>
-    <button
-      class="clear tabs__tab-button"
-      class:tabs__tab-button--active={currentTab === 2}
-
-      onclick={() => currentTab = 2}
-    >
-      Bots
-    </button>
-  </div>
   <div class="dialogs__status">
     <b>{currentDialogList.length} dialogs</b>
   </div>
-  <div class="divider"></div>
+
+  <VkDivider></VkDivider>
   <div class="dialogs__list">
     {#each currentDialogList as dialog}
       {#key dialog.id}
@@ -42,15 +19,22 @@
   import { onMount } from "svelte";
   import { MessengerService } from "$lib/messenger.service";
   import DialogPanel from "$components/DialogPanel.svelte";
+  import VkTabs from "$components/VkTabs.svelte";
+  import VkDivider from "$components/VkDivider.svelte";
 
   const messengerService = new MessengerService();
 
   let currentTab = $state(0);
-  let chats = $state(messengerService.chats);
-  let contacts = $state(messengerService.contacts);
-  let bots = $state(messengerService.bots);
+  let chats = $state(messengerService.chats || []);
+  let contacts = $state(messengerService.contacts || []);
+  let bots = $state(messengerService.bots || []);
 
+  const tabs = ['Messages', 'Chats', 'Bots'];
   const currentDialogList = $derived([contacts, chats, bots][currentTab]);
+
+  const onChangeTab = (index: number) => {
+    currentTab = index;
+  }
 
   onMount(() => {
     messengerService.loadDialogs()

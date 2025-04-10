@@ -1,6 +1,6 @@
 <div class="post" class:post--repost={repost}>
   {#if !compact}
-    <Avatar class="post__avatar" id={post.authorId} />
+    <VkAvatar class="post__avatar" id={post.authorId} />
   {/if}
 
   <div class="post__content">
@@ -55,7 +55,7 @@
 <script lang="ts">
   import { formatMarkdown } from "$lib/utils";
   import type { MessageModel } from "../models/message.model";
-  import Avatar from "./Avatar.svelte";
+  import VkAvatar from "./VkAvatar.svelte";
   import Video from "./Video.svelte";
   import Photo from "./Photo.svelte";
   import RoundVideo from "./RoundVideo.svelte";

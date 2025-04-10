@@ -1,7 +1,7 @@
 <main class="messenger">
   <div class="messenger__title">
     <a href="/messages">Back</a>
-    <h1 class="page-headline">{page.data.id}</h1>
+    <h1 class="page-headline">{params.id}</h1>
   </div>
   <div class="messenger__messages">
     <div class="messenger__scroll-wrapper" bind:this={scrollWrapper}>
@@ -13,7 +13,7 @@
     </div>
   </div>
   <div class="messenger__input-panel">
-    <Avatar class="messenger__avatar" id="me" />
+    <VkAvatar class="messenger__avatar" id="me" />
 
     <form
       class="messenger__input-wrapper"
@@ -30,30 +30,35 @@
       ></textarea>
 
       <div class="messenger__input-actions">
-        <button class="inline">
+        <VkButton inline>
           Submit
-        </button>
+        </VkButton>
 
-        <button class="flat inline">
+        <VkButton flat inline>
           Attach
-        </button>
+        </VkButton>
       </div>
     </form>
 
-    <Avatar class="messenger__avatar" id={ page.data.id } />
+    <VkAvatar class="messenger__avatar" id={ params.id } />
   </div>
 </main>
 
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { page } from "$app/state";
 
   import type { MessageModel } from "$models/message.model";
   import { MessengerService, MessengerServiceEvents } from "$lib/messenger.service";
+
   import Message from "$components/Message.svelte";
-  import Avatar from "$components/Avatar.svelte";
+  import VkAvatar from "$components/VkAvatar.svelte";
+  import VkButton from "$components/VkButton.svelte";
+
+  import { page } from "$app/state";
 
   const messengerService = new MessengerService;
+
+  const { params } = page;
 
   let form: HTMLFormElement;
   let scrollWrapper: HTMLDivElement;
@@ -76,14 +81,14 @@
     const mess = form.message.value.trim();
     if (mess === '') return;
 
-    await messengerService.sendMessage(page.data.id, mess);
+    await messengerService.sendMessage(params.id!, mess);
     scrollWrapper.scrollTop = 0;
     form.message.value = '';
   }
 
   const loadMoreMessages = async () => {
     isLoading = true;
-    const newMessages = await messengerService.getMessages(page.data.id, messages[messages.length - 1].id);
+    const newMessages = await messengerService.getMessages(params.id!, messages[messages.length - 1].id);
     messages = [...messages, ...newMessages];
     isLoading = false;
   }
@@ -104,7 +109,7 @@
   }
 
   onMount(async () => {
-    messengerService.getMessages(page.data.id)
+    messengerService.getMessages(params.id!)
       .then((newMessages: MessageModel[]) => messages = newMessages)
       .finally(() => isLoading = false);
 

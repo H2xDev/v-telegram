@@ -1,7 +1,7 @@
 <main class="friends">
-  <div class="divider">
+  <VkDivider>
     You have { contacts.length } contacts
-  </div>
+  </VkDivider>
 
   {#each contacts as dialog}
     <ContactPanel { dialog } />
@@ -10,8 +10,9 @@
 
 <script lang="ts">
   import { MessengerService } from "$lib/messenger.service";
-  import ContactPanel from "$components/ContactPanel.svelte";
   import type { DialogModel } from "$models/dialog.model";
+  import ContactPanel from "$components/ContactPanel.svelte";
+  import VkDivider from "$components/VkDivider.svelte";
   
   const messengerService = new MessengerService;
   let contacts: DialogModel[] = $state(messengerService.contacts);

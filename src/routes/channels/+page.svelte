@@ -1,3 +1,7 @@
+<svelte:head>
+  <title>Channels</title>
+</svelte:head>
+
 <main class="channels">
   <div class="channels__state">
     You are subscribed to {channels.length} channels
@@ -6,7 +10,7 @@
     <div class="channels__content f f--c f--g-base">
       {#each channels as channel}
         <div class="f f--g-base channel">
-          <Avatar class="channel__avatar" id={channel.id} size={100}/>
+          <VkAvatar class="channel__avatar" id={channel.id} size={100}/>
 
           <div class="f f--c f--g-small">
             <div class="f f--g-small f--aic">
@@ -23,7 +27,7 @@
       {/each}
 
       {#if isLoading}
-        <Spinner />
+        <VkSpinner />
       {/if}
     </div>
   
@@ -34,9 +38,9 @@
 </main>
 
 <script lang="ts">
-    import { ChannelService } from "$lib/channel.service";
-  import Avatar from "../../components/Avatar.svelte";
-  import Spinner from "../../components/Spinner.svelte";
+  import { ChannelService } from "$lib/channel.service";
+  import VkAvatar from "../../components/VkAvatar.svelte";
+  import VkSpinner from "../../components/VkSpinner.svelte";
   import type { ChannelModel } from "../../models/channel.model";
 
   const channelService = new ChannelService();

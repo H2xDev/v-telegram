@@ -1,7 +1,5 @@
 import * as telegram from 'telegram';
 import { Expose, Transform } from "class-transformer";
-import { EntityModel } from "./entity.model";
-import { TelegramService } from "$lib/telegram.service";
 
 export class MusicModel {
 	@Expose()
@@ -9,11 +7,11 @@ export class MusicModel {
 	document!: telegram.Api.Document;
 
 	@Expose()
-	@Transform(({ obj }) => +String(obj.document.id))
+	@Transform(({ obj }) => obj.document.id.toString())
 	id!: any;
 
   @Expose()
-  @Transform(({ obj }) => obj.document.mimeType.replace('mpeg3', 'mpeg'))
+  @Transform(({ obj }) => obj.document.mimeType.replace(/(mpeg3|mp4|mp3)/, 'mpeg'))
   mimeType!: string;
 
 	@Expose()

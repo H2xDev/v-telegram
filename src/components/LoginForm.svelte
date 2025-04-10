@@ -2,105 +2,109 @@
 <form class="login" on:submit|preventDefault={submit}>
 	{#if isPhoneRequire}
 		<p>Enter phone number:</p>
-		<input name="value" type="text" placeholder="Enter phone number" />
+		<VkInputField name="value" type="text" placeholder="Enter phone number" />
 	{/if}
 
 	{#if isCodeRequire}
 		<p>Enter code:</p>
-		<input name="value" type="text" placeholder="Enter code" />
+		<VkInputField name="value" type="text" placeholder="Enter code" />
 	{/if}
 
 	{#if isPassRequire}
 		<p>Enter password:</p>
-		<input name="value" type="password" placeholder="Enter password" />
+		<VkInputField name="value" type="password" placeholder="Enter password" />
 	{/if}
 
-	<button>
+	<VkButton>
 		{#if isPending}
-			<Spinner />
+			<VkSpinner />
 		{:else}
 			Send
 		{/if}
-	</button>
+	</VkButton>
 </form>
 
 <script lang="ts">
-import { onMount } from 'svelte';
-import Spinner from '../components/Spinner.svelte';
-import { TelegramService, TelegramServiceEvents } from '$lib/telegram.service';
-import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
+  import { TelegramService, TelegramServiceEvents } from '$lib/telegram.service';
+  import { goto } from '$app/navigation';
 
-let isPending = true;
-let isPhoneRequire = false;
-let isCodeRequire = false;
-let isPassRequire = false;
+  import VkSpinner from '../components/VkSpinner.svelte';
+  import VkInputField from './VkInputField.svelte';
+  import VkButton from './VkButton.svelte';
 
-let promiseResolver: (value: string) => void;
-
-const submit = (e: SubmitEvent) => {
-  const { target } = e as unknown as { target: HTMLFormElement };
-
-  if (promiseResolver) {
-    promiseResolver(target.value.value);
+  let isPending = $state(true);
+  let isPhoneRequire = $state(false);
+  let isCodeRequire = $state(false);
+  let isPassRequire = $state(false);
+  
+  let promiseResolver: (value: string) => void;
+  
+  const submit = (e: SubmitEvent) => {
+    const { target } = e as unknown as { target: HTMLFormElement };
+  
+    if (promiseResolver) {
+      promiseResolver(target.value.value);
+    }
   }
-}
-
-const createResolver = () => {
-  return new Promise<string>((resolve) => {
-    promiseResolver = resolve;
+  
+  const createResolver = () => {
+    return new Promise<string>((resolve) => {
+      promiseResolver = resolve;
+    })
+  }
+  
+  const onPhoneRequired = () => {
+    isPhoneRequire = true;
+    isCodeRequire = false;
+    isPassRequire = false;
+  
+    return createResolver();
+  }
+  
+  const onCodeRequired = () => {
+    isPhoneRequire = false;
+    isCodeRequire = true;
+    isPassRequire = false;
+  
+    return createResolver();
+  }
+  
+  const onPassRequired = () => {
+    isPhoneRequire = false;
+    isCodeRequire = false;
+    isPassRequire = true;
+  
+    return createResolver();
+  }
+  
+  const onError = (error: any) => {
+    console.error(error);
+  }
+  
+  onMount(async () => {
+  	const service = new TelegramService();
+  	await service.forEvent(TelegramServiceEvents.CONNECTED);
+  
+  	const isLoggedIn = await service.isLoggedIn();
+  
+  	if (isLoggedIn) {
+      isPending = false;
+  		return;
+  	}
+  
+  	isPending = false;
+  
+  	service
+  	.login(
+  		onPhoneRequired,
+  		onCodeRequired,
+  		onPassRequired,
+  		onError,
+  	)
+  	.then(() => goto('/me'))
+  	.catch((error) => console.error(error));
   })
-}
-
-const onPhoneRequired = () => {
-  isPhoneRequire = true;
-  isCodeRequire = false;
-  isPassRequire = false;
-
-  return createResolver();
-}
-
-const onCodeRequired = () => {
-  isPhoneRequire = false;
-  isCodeRequire = true;
-  isPassRequire = false;
-
-  return createResolver();
-}
-
-const onPassRequired = () => {
-  isPhoneRequire = false;
-  isCodeRequire = false;
-  isPassRequire = true;
-
-  return createResolver();
-}
-
-const onError = (error: any) => {
-  console.error(error);
-}
-
-onMount(async () => {
-	const service = new TelegramService();
-	await service.forEvent(TelegramServiceEvents.CONNECTED);
-
-	const isLoggedIn = await service.isLoggedIn();
-
-	if (isLoggedIn) {
-		return;
-	}
-
-	isPending = false;
-
-	service
-	.login(
-		onPhoneRequired,
-		onCodeRequired,
-		onPassRequired,
-		onError,
-	)
-	.then(() => goto('/me'))
-	.catch((error) => console.error(error));
-})
 </script>
 
 <style lang="scss">
