@@ -61,6 +61,6 @@ export class VideoModel {
 	}
 
 	getThumbUrl() {
-		return new MediaService().downloadThumbnail(this.document);
+		return new MediaService().downloadMedia(this.document);
 	}
 }

@@ -29,6 +29,7 @@
 		"vite": "^6.0.0"
 	},
 	"dependencies": {
+		"@lottiefiles/dotlottie-svelte": "^0.5.1",
 		"@sveltejs/adapter-static": "^3.0.8",
 		"@types/node": "^22.14.0",
 		"class-transformer": "^0.5.1",

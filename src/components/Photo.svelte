@@ -21,7 +21,8 @@
     let src = $state('');
 
     onMount(async () => {
-        src = await post.photo?.getUrl() || '';
+        src = await post.photo?.getUrl() || await post.sticker?.getUrl() || '';
+        console.log(src);
     });
 
     const handleClick = () => {

@@ -17,7 +17,7 @@ export enum DBBanks {
 export interface CacheData {
 	id: any,
 	data: any,
-	buffer?: ArrayBuffer,
+	buffer?: Uint8Array,
 	expiresIn?: number,
 }
 
@@ -138,7 +138,7 @@ export class DBService extends EventHandler<DBServiceEventsDeclaration> {
 		});
 	}
 
-	public saveBlob(id: number | string, buffer: ArrayBuffer, mimeType = "image/jpeg") {
+	public saveBlob(id: number | string, buffer: Uint8Array, mimeType = "image/jpeg") {
 		id = String(id);
 
 		this.blobs[id] = URL.createObjectURL(new Blob([buffer], { type: mimeType }));

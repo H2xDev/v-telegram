@@ -25,6 +25,10 @@
           {#if subPost.round}
             <RoundVideo post={subPost} />
           {/if}
+
+          {#if subPost.sticker}
+            <Sticker post={subPost} />
+          {/if}
         {/each}
       </div>
     {/if}
@@ -41,14 +45,17 @@
   import Video from "./Video.svelte";
   import Photo from "./Photo.svelte";
   import RoundVideo from "./RoundVideo.svelte";
+  import Sticker from "./Sticker.svelte";
 
   interface Props {
     post: MessageModel;
   }
 
   let { post }: Props = $props();
-  const hasAttachments = $derived(post.group.some((p) => p.video || p.photo || p.round));
+  const hasAttachments = $derived(post.group.some((p) => p.video || p.photo || p.round || p.sticker));
   const isMultipleAttachments = $derived(post.group.length > 1 && hasAttachments);
+
+  $inspect(post);
 </script>
 
 <style lang="scss">

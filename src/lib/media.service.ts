@@ -34,7 +34,7 @@ export class MediaService extends EventHandler<MediaServiceEventsDeclaration> {
 		if (blob) return blob;
 
 		const cachedData = await this.dbService.get(id, DBBanks.VIDEOS);
-		const buffer = cachedData?.buffer || await this.telegramService.client.downloadMedia(mediaDocumentData);
+		const buffer = cachedData?.buffer || await this.telegramService.client.downloadMedia(mediaDocumentData) as Uint8Array;
 
 		if (!cachedData) {
 			this.dbService.save({ id, buffer }, DBBanks.VIDEOS);
@@ -47,7 +47,7 @@ export class MediaService extends EventHandler<MediaServiceEventsDeclaration> {
 		return this.dbService.getBlob(id);
 	}
 
-	async downloadThumbnail(mediaDocumentData: telegram.Api.MessageMediaDocument) {
+	async downloadMedia(mediaDocumentData: telegram.Api.MessageMediaDocument) {
 		if (!mediaDocumentData.document) return null;
 		const id = mediaDocumentData.document?.id.toString() + '_thumb';
 
@@ -61,14 +61,16 @@ export class MediaService extends EventHandler<MediaServiceEventsDeclaration> {
 			return this.dbService.getBlob(id);
 		}
 
-		const buffer = await this.telegramService.client.downloadMedia(mediaDocumentData, {
+		const buffer = (await this.telegramService.client.downloadMedia(mediaDocumentData, {
 			thumb: 1,
-		});
+		})) as Uint8Array;
 
 		this.dbService.save({ id, buffer }, DBBanks.PHOTOS);
 
+    const { mimeType } = mediaDocumentData.document as any;
+
 		if (!blob) {
-			this.dbService.saveBlob(id, buffer);
+			this.dbService.saveBlob(id, buffer, (mimeType || 'image/webp'));
 		}
 
 		return this.dbService.getBlob(id);
@@ -77,7 +79,7 @@ export class MediaService extends EventHandler<MediaServiceEventsDeclaration> {
 	async downloadPhoto(mediaPhotoData: telegram.Api.MessageMediaPhoto) {
 		if (!mediaPhotoData.photo) return null;
 
-		const id = mediaPhotoData.photo.id.toString();
+		const id = mediaPhotoData.photo.id.toString() || (mediaPhotoData as any).document.id.toString();
 		const blob = this.dbService.getBlob(id);
 
 		if (blob) return blob;

@@ -5,6 +5,7 @@ import { VideoModel } from './video.model';
 import { PhotoModel } from './photo.model';
 import { UserModel } from './user.model';
 import { MusicModel } from './music.model';
+import { StickerModel } from './sticker.model';
 
 export class MessageModel {
 	@Expose()
@@ -73,6 +74,13 @@ export class MessageModel {
 	@Expose()
 	@Transform(({ obj }) => obj.groupedId?.value.toString())
 	groupedId?: string;
+
+  @Expose()
+  @Transform(({ obj }) => {
+    if (!obj.sticker) return null;
+    return plainToInstance(StickerModel, obj.media, { excludeExtraneousValues: true });
+  })
+  sticker!: StickerModel | null;
 	
 	group: MessageModel[] = [];
 
