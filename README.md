@@ -1,5 +1,7 @@
 # VTelegram
-Клиент Telegram который представляет мессенджер в виде социальной сети ВКонтакте 2010-х годов. Клиент работает на базе [GramJS](https://github.com/gram-js/gramjs).
+[v-telega.web.app](https://v-telega.web.app)  
+
+Клиент Telegram который представляет мессенджер в виде социальной сети ВКонтакте 2010-х годов. Клиент работает на базе [GramJS](https://github.com/gram-js/gramjs). 
 <p align="center"> <img src="https://github.com/user-attachments/assets/33aa6939-2ce9-4831-bea1-705283883295" width="500" /> </p>
 
 ## Зачем?
