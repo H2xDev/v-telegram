@@ -4,7 +4,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { execSync } from 'child_process';
 
 const VITE_GIT_COMMIT_HASH = (() => {
-  return execSync('git rev-parse HEAD', { encoding: 'utf-8' }).toString().trim();
+  return execSync('git rev-parse master', { encoding: 'utf-8' }).toString().trim();
 })();
 
 const ENV = {
