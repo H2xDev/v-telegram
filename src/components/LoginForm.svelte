@@ -84,8 +84,6 @@
   
   onMount(async () => {
   	const service = new TelegramService();
-  	await service.forEvent(TelegramServiceEvents.CONNECTED);
-  
   	const isLoggedIn = await service.isLoggedIn();
   
   	if (isLoggedIn) {
