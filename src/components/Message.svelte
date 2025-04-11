@@ -58,8 +58,6 @@
 
   let { post }: Props = $props();
   const isMultipleAttachments = $derived(post.group.length > 1 && post.hasAttachments);
-
-  $inspect(post);
 </script>
 
 <style lang="scss">
