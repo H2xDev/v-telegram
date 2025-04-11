@@ -12,10 +12,12 @@
 
   {#if currentSong}
     {#key currentSong.id }
-      <SmallMusicPlayer
+      <MusicPlayer
         class="music-page__player"
         post={{ music: currentSong }}
         big
+        onNextSongRequest={playNext}
+        onPrevSongRequest={playPrev}
       />
     {/key}
   {/if}
@@ -86,6 +88,7 @@
   import { ChannelService } from "@/lib/channel.service";
 
   import SmallMusicPlayer from "$components/SmallMusicPlayer.svelte";
+  import MusicPlayer from "$components/MusicPlayer.svelte";
   import VkInputField from "$components/VkInputField.svelte";
   import VkButton from "$components/VkButton.svelte";
   import VkTitleBar from "$components/VkTitleBar.svelte";
@@ -106,7 +109,7 @@
   let isLoading = $state(true);
   let isChannelLoading = $state(true);
   let currentQuery: string = $state('');
-  let currentSong: MusicModel | null = $state(musicService.currentMusic);
+  let currentSong: MusicModel | null = $state(musicService.settings.music);
   let channelList: ChannelModel[] = $state([]);
   let sidebar: HTMLDivElement | null = $state(null);
   let sidebarHeight = $state(0);
@@ -138,17 +141,15 @@
       currentSong = music;
     });
 
-    if (!currentSong) {
-      musicService.currentMusic = musicService.currentMusic || musicList[0]?.music;
-    }
+    if (currentSong) return;
+    musicService.settings.music = musicService.settings.music || musicList[0]?.music;
   }
 
   const onQueryInput = (e: Event) => {
     const { target } = e as unknown as { target: HTMLInputElement };
 
-    if (timeout) {
-      clearTimeout(timeout);
-    }
+    if (timeout) clearTimeout(timeout);
+
     currentQuery = target.value;
 
     setTimeout(() => {
@@ -159,6 +160,20 @@
 
   const loadChannels = async () => {
     channelList = await channelService.getChannelList().finally(() => isChannelLoading = false);
+  }
+
+  const playNext = () => {
+    const currentIndex = musicList.findIndex((item) => item.music?.id === currentSong?.id);
+    if (currentIndex === -1) return;
+
+    currentSong = musicList[currentIndex + 1]?.music;
+  }
+
+  const playPrev = () => {
+    const currentIndex = musicList.findIndex((item) => item.music?.id === currentSong?.id);
+    if (currentIndex === -1) return;
+
+    currentSong = musicList[currentIndex - 1]?.music;
   }
 
   onMount(async () => {

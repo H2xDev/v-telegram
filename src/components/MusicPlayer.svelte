@@ -10,6 +10,17 @@
       onclick={play}
       aria-label={isPlaying ? 'Pause' : 'Play'}
     ></button>
+
+    <button
+      class="music-player__song-prev"
+      aria-label="Previous Song"
+      onclick={handlePrevSong}
+    ></button>
+    <button
+      class="music-player__song-next"
+      aria-label="Next Song"
+      onclick={handleNextSong}
+    ></button>
   </div>
 
   <div class="music-player__info">
@@ -31,6 +42,20 @@
       bind:value={percent}
       onDragStateChange={onNailStateChanged}
     />
+
+    <TrackControl 
+      class="music-player__volume-control"
+      bind:value={volume}
+    />
+  </div>
+
+  <div class="music-player__state-controls">
+    <button 
+      class="music-player__loop-button"
+      class:music-player__loop-button--active={loop}
+      onclick={() => loop = !loop}
+    >
+    </button>
   </div>
 </div>
 
@@ -44,17 +69,26 @@
   interface Props {
     post: MessageModel;
     class?: string;
+    onNextSongRequest?: () => void;
+    onPrevSongRequest?: () => void;
   }
-  let { post, class: clazz = '', big }: Props = $props();
+
+  let { 
+    post, 
+    class: clazz = '', 
+    onNextSongRequest,
+    onPrevSongRequest,
+  }: Props = $props();
 
   const musicService = new MusicService
-  const music = musicService.getAudio(post.music!)
+  const music = musicService.getAudio(post.music!);
 
   let isPlaying = $state(music ? !music.paused : false);
   let isDragging = $state(false);
   let percent = $state((music?.currentTime || 0) / post.music!.duration);
   let playedTime = $state('');
   let volume = $state(musicService.settings.volume);
+  let loop = $state(musicService.settings.loop);
 
   const play = () => {
     if (!music) return;
@@ -95,6 +129,16 @@
     isPlaying = true;
   }
 
+  const handleNextSong = async () => {
+    onNextSongRequest?.();
+    Promise.resolve().then(play);
+  }
+
+  const handlePrevSong = async () => {
+    onPrevSongRequest?.();
+    Promise.resolve().then(play);
+  }
+
   onMount(() => {
     if (!music) return;
     music.addEventListener('play', onPlay)
@@ -111,35 +155,29 @@
 
   $effect(() => {
     musicService.settings.volume = volume;
+    musicService.settings.loop = loop;
   })
 </script>
 
 <style lang="scss">
   .music-player {
     --percent: 0;
+
+    padding: 12px 10px;
     display: grid;
     align-items: center;
-    grid-template-columns: 16px 1fr;
-    gap: var(--gap-small);
+    grid-template-columns: 64px 1fr;
+    gap: var(--gap-small) var(--gap);
     width: 100%;
     box-sizing: border-box;
     grid-template-areas: 
-      'controls info'
-      'controls track';
+      'controls info state'
+      'controls track state';
 
-    &:not(&--playing) {
-      grid-template-areas: 
-        'controls info';
-    }
-
-    &:hover {
-      background-color: #EDF1F5;
-    }
-
-    &--playing {
-      grid-template-areas: 
-        'controls info'
-        'controls track';
+    &__state-controls {
+      display: flex;
+      align-items: center;
+      grid-area: state;
     }
 
     &__controls {
@@ -157,13 +195,10 @@
       grid-area: track;
     }
 
-    &:not(&--playing) &__track-controls {
-      display: none;
-    }
-
     &__play-button,
     &__song-prev,
-    &__song-next {
+    &__song-next,
+    &__loop-button {
       width: 16px;
       height: 16px;
       border-radius: 2px;
@@ -176,8 +211,32 @@
       flex-shrink: 0;
     }
 
-    &--playing &__play-button {
-      background-position-y: -16px;
+    &__play-button {
+      width: 22px;
+      height: 22px;
+      background-image: url('/icons/playpause_large.png');
+    }
+
+    &:where(&--playing) &__play-button {
+      background-position-y: -22px;
+    }
+
+    &__song-prev {
+      background: url(/icons/ic-prev-song.png);
+    }
+
+    &__song-next {
+      background: url(/icons/ic-next-song.png);
+    }
+
+    &__loop-button {
+      background: url(/icons/ic-loop.png);
+      opacity: 0.5;
+
+      &--active,
+      &:hover {
+        opacity: 1;
+      }
     }
 
     &__info {
@@ -186,9 +245,6 @@
       gap: 5px;
       flex: auto;
       grid-area: info;
-    }
-
-    &--big &__info {
       padding-right: 74px;
     }
 
@@ -209,9 +265,16 @@
       text-align: right;
       color: var(--color-gray);
       font-size: 0.9em;
+      font-size: 11px;
     }
 
     :global &__timeline {
+      --track-bg-color: var(--color-bg) !important;
+      --track-fg-color: var(--color-main) !important;
+    }
+
+    :global &__volume-control {
+      max-width: 60px;
       --track-bg-color: var(--color-bg) !important;
       --track-fg-color: var(--color-main) !important;
     }
