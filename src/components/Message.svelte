@@ -11,7 +11,7 @@
 
     {@html formatMarkdown(post.message, post.raw.entities || []) }
 
-    {#if hasAttachments}
+    {#if post.hasAttachments}
       <div class="post__attachments" class:post__attachments--multiple={isMultipleAttachments}>
         {#each post.group as subPost}
           {#if subPost.video}
@@ -28,6 +28,10 @@
 
           {#if subPost.sticker}
             <Sticker post={subPost} />
+          {/if}
+
+          {#if subPost.file}
+            <FilePreview post={subPost} />
           {/if}
         {/each}
       </div>
@@ -46,14 +50,14 @@
   import Photo from "./Photo.svelte";
   import RoundVideo from "./RoundVideo.svelte";
   import Sticker from "./Sticker.svelte";
+  import FilePreview from "./FilePreview.svelte";
 
   interface Props {
     post: MessageModel;
   }
 
   let { post }: Props = $props();
-  const hasAttachments = $derived(post.group.some((p) => p.video || p.photo || p.round || p.sticker));
-  const isMultipleAttachments = $derived(post.group.length > 1 && hasAttachments);
+  const isMultipleAttachments = $derived(post.group.length > 1 && post.hasAttachments);
 
   $inspect(post);
 </script>
