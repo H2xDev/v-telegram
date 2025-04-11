@@ -53,7 +53,7 @@
     if (window.scrollY + window.innerHeight > document.body.offsetHeight - 100) {
       isLoading = true;
       channelService
-        .getPosts('dvachannel', posts[posts.length - 1].id)
+        .getPosts(channel, posts[posts.length - 1].id)
         .then(appendPosts)
         .finally(() => isLoading = false);
     }
