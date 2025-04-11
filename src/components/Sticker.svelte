@@ -15,7 +15,6 @@
 {/if}
 
 <script lang="ts">
-  import { DotLottieSvelte } from "@lottiefiles/dotlottie-svelte";
   import type { MessageModel } from "$models/message.model";
   import { onMount } from "svelte";
 
