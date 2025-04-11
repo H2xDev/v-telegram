@@ -1,7 +1,13 @@
 <div class="dialog" class:dialog--unread={dialog.unreadCount}>
   <VkAvatar class="dialog__avatar" id={`${dialog.id}`} />
   <div class="dialog__info">
-    <a class="dialog__name" href="/{dialog.user.username || dialog.user.id}">{dialog.title}</a>
+    <svelte:element
+      this={tag}
+      class="dialog__name"
+      href="/{dialog.user.username || dialog.user.id}"
+    >
+      {dialog.title}
+    </svelte:element>
     <div class="dialog__online-status"></div>
     <div class="dialog__date">{dialog.lastMessage.date.toLocaleDateString()}</div>
   </div>
@@ -25,6 +31,7 @@
   }
 
   let { dialog }: Props = $props();
+  const tag = $derived(dialog.isGroup ? 'span' : 'a');
 
 </script>
 

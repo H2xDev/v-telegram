@@ -77,7 +77,7 @@
   {#if !hideTitle }
     <div class="video-container__footer">
       <div class="video-container__title">
-        <div class="monoiconset-movie"></div> { post.video.filename }
+        <div class="monoiconset-movie"></div> { post.video?.filename.slice(0, 30) }
       </div>
 
       <div class="video-container__views-label">

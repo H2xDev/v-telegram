@@ -42,6 +42,7 @@ export class UserModel extends EntityModel {
 	personalChannel: ChannelModel | null = null;
 
 	get fullName() {
+    if (this.raw.title) return this.raw.title;
 		return `${this.firstName} ${this.lastName || ''}`;
 	}
 }

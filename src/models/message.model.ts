@@ -37,6 +37,10 @@ export class MessageModel {
 	@Type(() => ChannelModel)
 	channel!: ChannelModel;
 
+  @Expose()
+  @Transform(({ obj }) => plainToInstance(UserModel, obj._chat, { excludeExtraneousValues: true }))
+  chat!: UserModel;
+
 	@Expose()
 	@Transform(({ obj }) => plainToInstance(UserModel, obj._sender, { excludeExtraneousValues: true }))
 	user!: UserModel;

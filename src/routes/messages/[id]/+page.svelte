@@ -1,7 +1,7 @@
 <main class="messenger">
   <div class="messenger__title">
     <a href="/messages">Back</a>
-    <h1 class="page-headline">{params.id}</h1>
+    <h1 class="page-headline">{ user?.fullName }</h1>
   </div>
   <div class="messenger__messages">
     <div class="messenger__scroll-wrapper" bind:this={scrollWrapper}>
@@ -55,8 +55,11 @@
   import VkButton from "$components/VkButton.svelte";
 
   import { page } from "$app/state";
+  import { UserService } from "@/lib/user.service";
+  import type { UserModel } from "$models/user.model";
 
   const messengerService = new MessengerService;
+  const userService = new UserService;
 
   const { params } = page;
 
@@ -64,6 +67,7 @@
   let scrollWrapper: HTMLDivElement;
   let messages: MessageModel[] = $state([]);
   let isLoading: boolean = $state(true);
+  let user: UserModel | null = $state(null);
 
   const preventNewLine = (e: KeyboardEvent) => {
     if (e.key === "Enter") e.preventDefault();
@@ -112,6 +116,9 @@
     messengerService.getMessages(params.id!)
       .then((newMessages: MessageModel[]) => messages = newMessages)
       .finally(() => isLoading = false);
+
+    user = await userService.getUser(params.id!)
+    console.log(user);
 
     scrollWrapper.addEventListener("scroll", onScroll);
   });
