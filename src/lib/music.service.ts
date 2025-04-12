@@ -4,21 +4,23 @@ import { TelegramService } from "./telegram.service";
 import { MusicModel } from '$models/music.model';
 import { plainToInstance } from 'class-transformer';
 import { MessageModel } from '$models/message.model';
+import { DBBanks, DBService } from './db.service';
 
 export enum MusicServiceEvents {
-	ADDED_TO_PLAYLIST = 'added-to-playlist',
-	REMOVED_FROM_PLAYLIST = 'removed-from-playlist',
   MUSIC_CHANGED = 'music-changed',
   VOLUME_CHANGED = 'volume-changed',
   LOOP_CHANGED = 'loop-changed',
+  PLAY_STARTED = 'play-started',
+  PLAY_PAUSED = 'play-paused',
+  PLAYBACK_FINISHED = 'playback-finished',
 }
 
 interface MusicServiceEventsDeclaration {
-  [MusicServiceEvents.ADDED_TO_PLAYLIST]: MusicModel;
-  [MusicServiceEvents.REMOVED_FROM_PLAYLIST]: MusicModel;
   [MusicServiceEvents.MUSIC_CHANGED]: MusicModel | null;
   [MusicServiceEvents.VOLUME_CHANGED]: number;
   [MusicServiceEvents.LOOP_CHANGED]: boolean;
+  [MusicServiceEvents.PLAY_STARTED]: MusicModel;
+  [MusicServiceEvents.PLAY_PAUSED]: MusicModel;
 }
 
 const STORAGEABLE_SETTINGS = [
@@ -38,6 +40,7 @@ export interface MusicSettings {
 export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
   static instance = new MusicService;
 	private telegramService = new TelegramService;
+  private dbService = new DBService;
 
   private musicLists: Record<string, MessageModel[]> = {};
   private mediaSources: Record<string, MediaSource> = {};
@@ -98,10 +101,8 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
    * If the audio doesn't exist, it creates a new one and returns it and 
    * next method call will return the same audio element
    */
-  getAudio(music: MusicModel) {
-    if (!music.isSupported) {
-      return null;
-    }
+  getAudio(music: MusicModel | null = this.settings.music) {
+    if (!music) return;
 
     if (this.audioElements[music.id]) {
       return this.audioElements[music.id];
@@ -110,17 +111,18 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
     this.mediaSources[music.id] ??= new MediaSource();
 
     const audioElement = new Audio();
-    audioElement.src = URL.createObjectURL(this.mediaSources[music.id]);
-    audioElement.addEventListener('play', () => {
-      if (this.settings.music && this.settings.music !== music) {
-        this.getAudio(this.settings.music)?.pause();
-      }
-      this.settings.music = music;
-      audioElement.volume = this.settings.volume;
-      audioElement.loop = this.settings.loop;
-    });
 
-    audioElement.addEventListener('timeupdate', () => {
+    audioElement.src = URL.createObjectURL(this.mediaSources[music.id]);
+    audioElement.addEventListener('play', this.onMusicPlay.bind(this, music, audioElement));
+    audioElement.addEventListener('pause', this.trigger.bind(this, MusicServiceEvents.PLAY_PAUSED, music));
+    audioElement.addEventListener('timeupdate', this.onMusicTimeUpdate.bind(this, audioElement));
+
+    this.audioElements[music.id] = audioElement;
+
+    return audioElement;
+  }
+
+  private onMusicTimeUpdate(audioElement: HTMLAudioElement) {
       const percent = audioElement.currentTime / this.settings.music!.duration;
       if (percent < 1) return;
 
@@ -132,11 +134,20 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
       }
 
       audioElement.pause();
-    });
+      this.trigger(MusicServiceEvents.PLAYBACK_FINISHED, this.settings.music);
+  }
 
-    this.audioElements[music.id] = audioElement;
+  private onMusicPlay(music: MusicModel, audioElement: HTMLAudioElement) {
+      if (this.settings.music && this.settings.music !== music) {
+        this.getAudio(this.settings.music)?.pause();
+      }
 
-    return audioElement;
+      this.beginStream(music!);
+
+      this.settings.music = music;
+      audioElement.volume = this.settings.volume;
+      audioElement.loop = this.settings.loop;
+      this.trigger(MusicServiceEvents.PLAY_STARTED, music);
   }
 
   /**
@@ -165,24 +176,52 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
    * Starts streaming the music from the given document 
    * into the already created media source
    */
-  async beginStream(music: MusicModel) {
+  private async beginStream(music: MusicModel) {
     if (this.mediaSources?.[music.id].sourceBuffers.length || 0 > 0) {
       return;
     }
 
     this.mediaSources[music.id] ??= new MediaSource();
     const mediaSource = this.mediaSources[music.id];
-    mediaSource.addSourceBuffer(music.mimeType);
+    const sourceBuffer = mediaSource.addSourceBuffer(music.mimeType);
 
     const { document: doc } = music;
 		const requestConfig = this.createMediaRequestConfig(doc);
 
+    const cachedData = await this.dbService.get(music.id, DBBanks.MUSIC);
+
+    if (cachedData && cachedData.buffer) {
+      const buffer = cachedData.buffer;
+      sourceBuffer.appendBuffer(buffer);
+
+      sourceBuffer.addEventListener('updateend', () => {
+        mediaSource.endOfStream();
+      }, { once: true });
+
+      console.log('Loaded music from db', music.id);
+
+      return;
+    }
+
+    const buffer = [];
+
 		for await (const chunk of this.telegramService.client.iterDownload(requestConfig as any)) {
-			mediaSource.sourceBuffers[0].appendBuffer(chunk);
+			sourceBuffer.appendBuffer(chunk);
+      buffer.push(chunk);
 		}
 
-    // TODO Add the downloaded buffer to the cache
-    //      I'm not sure how to save the downloaded buffer to the cache :C
+    sourceBuffer.addEventListener('updateend', () => {
+      mediaSource.endOfStream();
+    }, { once: true });
+
+    const bufferToSave = buffer.reduce((acc, chunk) => {
+      const newBuffer = new Uint8Array(acc.length + chunk.length);
+      newBuffer.set(acc, 0);
+      newBuffer.set(chunk, acc.length);
+      return newBuffer;
+    }, new Uint8Array(0));
+
+    this.dbService.save({ id: music.id, buffer: bufferToSave }, DBBanks.MUSIC);
 	}
 
   private createMediaRequestConfig(doc: telegram.Api.Document) {

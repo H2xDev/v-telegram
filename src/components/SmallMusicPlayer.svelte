@@ -58,7 +58,6 @@
 
   const play = () => {
     if (!music) return;
-    musicService.beginStream(post.music!);
 
     if (!isPlaying) {
       music.play();

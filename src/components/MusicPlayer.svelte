@@ -1,7 +1,7 @@
 <div
   class="music-player { clazz || '' }"
   class:music-player--playing={isPlaying}
-  class:music-player--not-supported={!post.music?.isSupported}
+  class:music-player--not-supported={!music?.isSupported}
   style:--percent={percent}
 >
   <div class="music-player__controls">
@@ -24,15 +24,15 @@
   </div>
 
   <div class="music-player__info">
-    <p class="music-player__artist" title={post.music.artist}>
-      {post.music.artist.slice(0, 20) + (post.music.artist.length > 20 ? '...' : '')}
+    <p class="music-player__artist" title={music?.artist}>
+      {music?.artist.slice(0, 20) + ((music?.artist || '').length > 20 ? '...' : '')}
     </p>
     –
-    <p class="music-player__title" title={post.music.songName}>
-      {post.music.songName}
+    <p class="music-player__title" title={music?.songName}>
+      {music?.songName}
     </p>
 
-    <p class="music-player__duration">{isPlaying ? playedTime : formatTime(post.music.duration)}
+    <p class="music-player__duration">{isPlaying ? playedTime : formatTime(music?.duration || 0)}
     </p>
   </div>
 
@@ -60,65 +60,66 @@
 </div>
 
 <script lang="ts">
-  import { MusicService } from "$lib/music.service";
+  import { MusicService, MusicServiceEvents } from "$lib/music.service";
   import { formatTime } from "$lib/utils";
   import type { MessageModel } from "$models/message.model";
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, tick } from "svelte";
   import TrackControl from "./TrackControl.svelte";
+  import type { MusicModel } from "$models/music.model";
 
   interface Props {
-    post: MessageModel;
     class?: string;
     onNextSongRequest?: () => void;
     onPrevSongRequest?: () => void;
   }
 
   let { 
-    post, 
     class: clazz = '', 
     onNextSongRequest,
     onPrevSongRequest,
   }: Props = $props();
 
   const musicService = new MusicService
-  const music = musicService.getAudio(post.music!);
+  let music = $state(musicService.settings.music);
+  const audio = $derived(musicService.getAudio(music));
 
-  let isPlaying = $state(music ? !music.paused : false);
+  let isPlaying = $state(audio ? !audio.paused : false);
   let isDragging = $state(false);
-  let percent = $state((music?.currentTime || 0) / post.music!.duration);
+  let percent = $state((audio?.currentTime || 0) / music!.duration);
   let playedTime = $state('');
   let volume = $state(musicService.settings.volume);
   let loop = $state(musicService.settings.loop);
 
   const play = () => {
-    if (!music) return;
-    musicService.beginStream(post.music!);
+    if (!audio || !music) return;
 
     if (!isPlaying) {
-      music.play();
+      audio.play();
       return;
     }
-    music.pause();
+
+    audio.pause();
   };
 
   const onNailStateChanged = (dragState: boolean) => {
-    if (!post.music || !music) return;
+    if (!music || !audio) return;
 
     if (!dragState) {
-      music.currentTime = percent * post.music?.duration;
+      audio.currentTime = percent * music?.duration;
     }
 
     isDragging = dragState;
   }
 
   const updateProgress = () => {
-    if (!music || !post.music) return;
+    if (!music || !audio) return;
 
     if (!isDragging) {
-      percent = Math.min(1, music.currentTime / post.music.duration);
+      percent = Math.min(1, audio.currentTime / music.duration);
     }
 
-    playedTime = formatTime((1 - percent) * post.music!.duration);
+    playedTime = formatTime((1 - percent) * music.duration);
+    isPlaying = !audio.paused;
   }
 
   const onPause = () => {
@@ -131,27 +132,43 @@
 
   const handleNextSong = async () => {
     onNextSongRequest?.();
-    Promise.resolve().then(play);
   }
 
   const handlePrevSong = async () => {
+    if (audio && audio.currentTime > 3) {
+      percent = 0;
+      playedTime = formatTime(music!.duration);
+      audio.currentTime = 0;
+      return;
+    }
+
     onPrevSongRequest?.();
-    Promise.resolve().then(play);
   }
 
-  onMount(() => {
-    if (!music) return;
-    music.addEventListener('play', onPlay)
-    music.addEventListener('pause', onPause)
-    music.addEventListener('timeupdate', updateProgress)
-  });
+  const onMusicChange = (newMusic: MusicModel | null) => {
+    if (!newMusic) return;
 
-  onDestroy(() => {
-    if (!music) return;
-    music.removeEventListener('playing', onPlay)
-    music.removeEventListener('pause', onPause)
-    music.removeEventListener('timeupdate', updateProgress)
-  });
+    const newAudio = musicService.getAudio(newMusic);
+
+    if (audio && audio !== newAudio) {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.removeEventListener('timeupdate', updateProgress);
+    }
+
+    percent = 0;
+    playedTime = formatTime(0);
+    music = newMusic;
+
+    if (newAudio) {
+      newAudio.addEventListener('timeupdate', updateProgress);
+      newAudio.play();
+    }
+  }
+
+  onDestroy(musicService.on(MusicServiceEvents.MUSIC_CHANGED, onMusicChange));
+  onDestroy(musicService.on(MusicServiceEvents.PLAY_PAUSED, onPause));
+  onDestroy(musicService.on(MusicServiceEvents.PLAY_STARTED, onPlay));
 
   $effect(() => {
     musicService.settings.volume = volume;

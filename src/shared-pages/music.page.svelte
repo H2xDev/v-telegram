@@ -11,15 +11,12 @@
   {/if}
 
   {#if currentSong}
-    {#key currentSong.id }
-      <MusicPlayer
-        class="music-page__player"
-        post={{ music: currentSong }}
-        big
-        onNextSongRequest={playNext}
-        onPrevSongRequest={playPrev}
-      />
-    {/key}
+    <MusicPlayer
+      class="music-page__player"
+      onNextSongRequest={setNextSong}
+      onPrevSongRequest={setPreviousSong}
+      bind:this={bigPlayer}
+    />
   {/if}
 
   <div class="music-page__layout">
@@ -113,6 +110,7 @@
   let channelList: ChannelModel[] = $state([]);
   let sidebar: HTMLDivElement | null = $state(null);
   let sidebarHeight = $state(0);
+  let bigPlayer: MusicPlayer | null = $state(null);
 
   const appendMusic = (newMusic: MessageModel[]) => {
     if (newMusic.length === 0) {
@@ -162,18 +160,19 @@
     channelList = await channelService.getChannelList().finally(() => isChannelLoading = false);
   }
 
-  const playNext = () => {
+  const setNextSong = () => {
     const currentIndex = musicList.findIndex((item) => item.music?.id === currentSong?.id);
     if (currentIndex === -1) return;
 
-    currentSong = musicList[currentIndex + 1]?.music;
+    musicService.settings.music = musicList[currentIndex + 1]?.music;
   }
 
-  const playPrev = () => {
+  const setPreviousSong = () => {
     const currentIndex = musicList.findIndex((item) => item.music?.id === currentSong?.id);
     if (currentIndex === -1) return;
 
-    currentSong = musicList[currentIndex - 1]?.music;
+    
+    musicService.settings.music = musicList[currentIndex - 1]?.music;
   }
 
   onMount(async () => {
@@ -188,6 +187,7 @@
 
   $effect(() => {
     sidebarHeight = sidebar?.offsetHeight || 0;
+    console.log(bigPlayer);
   });
 </script>
 
