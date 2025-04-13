@@ -59,6 +59,8 @@
   const play = () => {
     if (!music) return;
 
+    console.log('play', post.music);
+
     if (!isPlaying) {
       music.play();
       return;
@@ -81,6 +83,11 @@
 
     if (!isDragging) {
       percent = Math.min(1, music.currentTime / post.music.duration);
+    }
+
+    if (post.music.duration === 0) {
+      percent = 0;
+      return;
     }
 
     playedTime = formatTime((1 - percent) * post.music!.duration);

@@ -1,6 +1,8 @@
 import * as telegram from 'telegram';
 import { Expose, Transform } from "class-transformer";
 
+const AVERAGE_MP3_BITRATE = 192;
+
 export class MusicModel {
 	@Expose()
 	@Transform(({ obj }) => obj.document)
@@ -11,7 +13,7 @@ export class MusicModel {
 	id!: any;
 
   @Expose()
-  @Transform(({ obj }) => obj.document.mimeType.replace(/(mpeg3|mp4|mp3)/, 'mpeg'))
+  @Transform(({ obj }) => obj.document.mimeType.replace(/(mpeg3|mp4|mp3|mpeg)/, 'mpeg'))
   mimeType!: string;
 
 	@Expose()
@@ -40,11 +42,25 @@ export class MusicModel {
 
 	@Expose()
 	@Transform(({ obj }) => {
-		return obj.document.attributes[0].duration;
+		return obj.document.attributes[0]?.duration || 0;
 	})
 	duration!: number;
 
+  @Expose()
+  @Transform(({ obj }) => {
+    return !obj.document.attributes[0]?.duration;
+  })
+  needRecalculateDuration!: boolean;
+
   get isSupported() {
     return MediaSource.isTypeSupported(this.mimeType);
+  }
+
+  recalculateDuration(bitrate: number | null) {
+    console.log('Recalculating duration', this.id, bitrate);
+    const size = +this.document.size.toString() * 8;
+    const bitrateValue = bitrate || AVERAGE_MP3_BITRATE;
+    this.duration = Math.floor(size / (bitrateValue * 1000));
+    this.needRecalculateDuration = false;
   }
 }

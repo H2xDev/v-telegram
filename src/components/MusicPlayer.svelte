@@ -118,6 +118,11 @@
       percent = Math.min(1, audio.currentTime / music.duration);
     }
 
+    if (music.duration === 0) {
+      percent = 0;
+      return;
+    }
+
     playedTime = formatTime((1 - percent) * music.duration);
     isPlaying = !audio.paused;
   }

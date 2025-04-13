@@ -1,4 +1,6 @@
 export const formatTime = (time: number) => {
+  if (!time) return '--:--';
+
 	const hour = 60 ** 2;
 
 	const string = new Date(time * 1000)
@@ -59,4 +61,3 @@ export const getNearScrollableElement = (el: any): HTMLElement | Window => {
 
 	return getNearScrollableElement(el.parentNode!) || window;
 }
-

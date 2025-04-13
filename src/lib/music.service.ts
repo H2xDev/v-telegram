@@ -28,6 +28,11 @@ const STORAGEABLE_SETTINGS = [
   'loop',
 ] as const;
 
+export const RECOMMENDED_CHANNELS = [
+  'ambientdark',
+  'space_ambient_music',
+];
+
 export interface MusicSettings {
   music: MusicModel | null;
   volume: number;
@@ -196,6 +201,7 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
 
       sourceBuffer.addEventListener('updateend', () => {
         mediaSource.endOfStream();
+        music.duration = mediaSource.duration;
       }, { once: true });
 
       console.log('Loaded music from db', music.id);
@@ -204,15 +210,14 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
     }
 
     const buffer = [];
-
 		for await (const chunk of this.telegramService.client.iterDownload(requestConfig as any)) {
-			sourceBuffer.appendBuffer(chunk);
-      buffer.push(chunk);
-		}
+      if (music.duration) {
+			  sourceBuffer.appendBuffer(chunk.buffer);
+      }
 
-    sourceBuffer.addEventListener('updateend', () => {
-      mediaSource.endOfStream();
-    }, { once: true });
+      buffer.push(chunk);
+
+		}
 
     const bufferToSave = buffer.reduce((acc, chunk) => {
       const newBuffer = new Uint8Array(acc.length + chunk.length);
@@ -220,6 +225,15 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
       newBuffer.set(chunk, acc.length);
       return newBuffer;
     }, new Uint8Array(0));
+
+    if (!music.duration) {
+      sourceBuffer.appendBuffer(bufferToSave);
+    }
+
+    sourceBuffer.addEventListener('updateend', () => {
+      mediaSource.endOfStream();
+      music.duration = mediaSource.duration;
+    }, { once: true });
 
     this.dbService.save({ id: music.id, buffer: bufferToSave }, DBBanks.MUSIC);
 	}

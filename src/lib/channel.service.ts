@@ -50,7 +50,7 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
 			instance.pinnedMessage = await this.getPinnedPost(instance.id);
 			instance.pinnedMessage.channel = instance;
 			this.channelsMap[username] = instance;
-			return instance;
+			return instance as ChannelModel;
 		}
 
 		const res = await this.telegramService.client.invoke(

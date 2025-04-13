@@ -15,7 +15,6 @@
       class="music-page__player"
       onNextSongRequest={setNextSong}
       onPrevSongRequest={setPreviousSong}
-      bind:this={bigPlayer}
     />
   {/if}
 
@@ -51,6 +50,23 @@
       </div>
 
       <VkTitleBar tag="h2" class="title-bar">
+        Music channels:
+      </VkTitleBar>
+
+      <div class="music-page__list">
+        {#each recommendedChannels as channel}
+            <VkButton
+              class="music-page__channel-item"
+              href={`/channels/${channel.id}/music`}
+              flat={ params?.id !== channel.id }
+              align="flex-start"
+            >
+              {channel.title}
+            </VkButton>
+        {/each}
+      </div>
+
+      <VkTitleBar tag="h2" class="title-bar">
         Music from channels:
       </VkTitleBar>
 
@@ -76,7 +92,7 @@
 
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { MusicService, MusicServiceEvents } from "$lib/music.service";
+  import { MusicService, MusicServiceEvents, RECOMMENDED_CHANNELS } from "$lib/music.service";
 
   import type { MessageModel } from "$models/message.model";
   import type { MusicModel } from "$models/music.model";
@@ -110,7 +126,7 @@
   let channelList: ChannelModel[] = $state([]);
   let sidebar: HTMLDivElement | null = $state(null);
   let sidebarHeight = $state(0);
-  let bigPlayer: MusicPlayer | null = $state(null);
+  let recommendedChannels: ChannelModel[] = $state([]);
 
   const appendMusic = (newMusic: MessageModel[]) => {
     if (newMusic.length === 0) {
@@ -158,6 +174,7 @@
 
   const loadChannels = async () => {
     channelList = await channelService.getChannelList().finally(() => isChannelLoading = false);
+    recommendedChannels = await Promise.all(RECOMMENDED_CHANNELS.map(channelService.getChannel.bind(channelService)));
   }
 
   const setNextSong = () => {
@@ -183,11 +200,6 @@
 
   onDestroy(() => {
     window.removeEventListener('scroll', onScroll);
-  });
-
-  $effect(() => {
-    sidebarHeight = sidebar?.offsetHeight || 0;
-    console.log(bigPlayer);
   });
 </script>
 
