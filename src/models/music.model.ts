@@ -27,7 +27,8 @@ export class MusicModel {
 		let { fileName = '' } = obj.document.attributes[1] || {};
     fileName = fileName.split('.').slice(0, -1).join('.');
 
-		return obj.document.attributes[0]?.performer || fileName.split('-')[0] || 'Unnamed Artist'
+		return (obj.document.attributes[0]?.performer || fileName.split('-')[0] || 'Unnamed Artist')
+      .replace(/_/g, ' ')
 	})
 	artist!: string;
 
@@ -36,7 +37,8 @@ export class MusicModel {
     let { fileName = '' } = obj.document.attributes[1] || {};
     fileName = fileName.split('.').slice(0, -1).join('.');
 
-		return obj.document.attributes[0]?.title || fileName.split('-')[1] || 'Unnamed Song'
+		return (obj.document.attributes[0]?.title || fileName.split('-')[1] || 'Unnamed Song')
+      .replace(/_/g, ' ')
 	})
 	songName!: string;
 
