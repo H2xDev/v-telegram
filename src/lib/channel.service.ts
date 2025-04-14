@@ -5,8 +5,16 @@ import { DBBanks, DBService } from "./db.service";
 import { EventHandler } from "./event-handler";
 import { TelegramService } from "./telegram.service";
 import { MessageModel } from "../models/message.model";
+import { UserModel } from "$models/user.model";
+import { UserService } from "./user.service";
 
 const POSTS_PAGE_LIMIT = 100;
+
+export interface CommentChunk {
+  list: MessageModel[];
+  count: number;
+  loadNext: () => Promise<CommentChunk>;
+}
 
 export enum ChannelServiceEvents {
 	CHANNEL_UPDATED = 'channel-updated',
@@ -34,6 +42,7 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
 	saveChannel(channel: ChannelModel) {
 		channel = Object.assign(new ChannelModel, channel);
 		this.channelsMap[channel.id] = channel;
+    this.channelsMap[+channel.raw.id.toString()] = channel;
 		this.dbService.save(channel, DBBanks.CHANNELS, 10);
 		this.trigger(ChannelServiceEvents.CHANNEL_UPDATED, channel);
 	}
@@ -140,6 +149,54 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
 		channel.isSubscribed = true;
 		this.saveChannel(channel);
 	}
+
+  async getComments(post: MessageModel, offsetId?: number) {
+    const res = await this.telegramService.client.invoke(
+      new telegram.Api.messages.GetReplies({
+        peer: post.raw.inputChat,
+        msgId: post.raw.id,
+        limit: 20,
+        offsetId,
+      }),
+    ) as any;
+
+    const users = plainToInstance(UserModel, res.users as any[], { excludeExtraneousValues: true });
+    users.forEach((user) => new UserService().saveUser(user));
+
+    plainToInstance(ChannelModel, res.chats as any[], { excludeExtraneousValues: true })
+      .forEach((channel) => this.saveChannel(channel));
+
+    let messages = plainToInstance(MessageModel, res.messages as any[], { excludeExtraneousValues: true }).reverse();
+    const messageRecords: Record<number, MessageModel> = {};
+    const count = messages.length;
+    const lastId = messages[0]?.id;
+
+    messages = messages.filter(this.assignGroup.bind(this));
+
+    messages.forEach((message) => {
+      messageRecords[message.id] = message;
+
+      if (message.fromUser) {
+        message.user = users.find((user) => user.id === message.fromId.toString()) || null;
+      }
+
+      if (message.fromChannel) {
+        message.channel = this.channelsMap[message.fromId] || null;
+      }
+
+      if (message.replyToId) {
+        const targetMessage = messageRecords[message.replyToId] || messages.find((msg) => msg.id === message.replyToId);
+        if (!targetMessage) return;
+        targetMessage.replies.push(message);
+      }
+    });
+
+    return { 
+      list: messages.filter((message) => !message.replyToId),
+      count,
+      loadNext: () => this.getComments(post, lastId),
+    };
+  }
 
 	private async getPinnedPost(channelId: string) {
 		if (!channelId) {

@@ -33,4 +33,8 @@ export class ChannelModel {
 	@Expose()
 	@Transform(({ obj }: any) => obj.about)
 	about!: string;
+
+  get url() {
+    return '/channels/' + this.id;
+  }
 }

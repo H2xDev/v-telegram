@@ -37,7 +37,7 @@
 <style lang="scss">
   .user-avatar {
     position: relative;
-    border-radius: 3px;
+    border-radius: var(--corners);
     aspect-ratio: 1 / 1;
     object-fit: cover;
 

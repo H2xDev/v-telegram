@@ -45,4 +45,11 @@ export class UserModel extends EntityModel {
     if (this.raw.title) return this.raw.title;
 		return `${this.firstName} ${this.lastName || ''}`;
 	}
+
+  get url() {
+    const id = this.username || this.id;
+    if (!id) return null;
+
+    return '/' + id;
+  }
 }

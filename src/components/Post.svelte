@@ -1,54 +1,48 @@
-<div class="post" class:post--repost={repost}>
+<div 
+  class="post"
+  class:post--repost={repost}
+  bind:this={rootEl}
+  id={post.id}
+>
   {#if !compact}
     <VkAvatar class="post__avatar" id={post.authorId} />
   {/if}
 
-  <div class="post__content">
-    {#if !noTitle}
-    <p class="t-main">
-      { post.channel.title }
-    </p>
-    {/if}
+  <div class="post__body">
+    <div class="post__content" bind:this={contentEl}>
+      {#if !noTitle}
+      <p class="t-main">
+        { post.channel.title }
+      </p>
+      {/if}
 
-    {#if post.message}
-      <div class="small-text">
-        {@html formatMarkdown(post.message, post.raw.entities || []) }
+      {#if post.message}
+        <div class="small-text">
+          {@html formatMarkdown(post.message, post.raw.entities || []) }
+        </div>
+      {/if}
+
+      {#if hasAttachments}
+        <Attachments class="post__attachments" { post } />
+      {/if}
+
+      {#if hasMusic}
+        <div class="post__music-list">
+          {#each post.group as subPost}
+            {#if subPost.music}
+              <SmallMusicPlayer post={subPost} />
+            {/if}
+          {/each}
+        </div>
+      {/if}
+
+      <div class="post__footer">
+        <span class="post__date small-text-hint">
+          { post.date.toLocaleString() }
+        </span>
       </div>
-    {/if}
-
-    {#if hasAttachments}
-      <div class="post__attachments" class:post__attachments--multiple={isMultipleAttachments}>
-        {#each post.group as subPost}
-          {#if subPost.video}
-            <Video post={subPost} openInViewer />
-          {/if}
-
-          {#if subPost.round}
-            <RoundVideo post={subPost} />
-          {/if}
-
-          {#if subPost.photo}
-            <Photo post={subPost} openInViewer />
-          {/if}
-        {/each}
-      </div>
-    {/if}
-
-    {#if hasMusic}
-      <div class="post__music-list">
-        {#each post.group as subPost}
-          {#if subPost.music}
-            <SmallMusicPlayer post={subPost} />
-          {/if}
-        {/each}
-      </div>
-    {/if}
-
-    <div class="post__footer">
-      <span class="post__date small-text-hint">
-        { post.date.toLocaleString() }
-      </span>
     </div>
+    <CommentarySection { post } />
   </div>
 </div>
 
@@ -56,10 +50,10 @@
   import { formatMarkdown } from "$lib/utils";
   import type { MessageModel } from "../models/message.model";
   import VkAvatar from "./VkAvatar.svelte";
-  import Video from "./Video.svelte";
-  import Photo from "./Photo.svelte";
-  import RoundVideo from "./RoundVideo.svelte";
   import SmallMusicPlayer from "./SmallMusicPlayer.svelte";
+  import CommentarySection from "./CommentarySection.svelte";
+  import { onDestroy, onMount } from "svelte";
+  import Attachments from "./Attachments.svelte";
 
   interface Props {
       post: MessageModel;
@@ -69,9 +63,24 @@
   }
 
   let { post, compact, noTitle, repost }: Props = $props();
-  const hasAttachments = $derived(post.group.some((p) => p.video || p.photo || p.round));
+  let contentEl: HTMLDivElement | null = null;
+  let rootEl: HTMLDivElement | null = null;
+
   const hasMusic = $derived(post.group.some(p => p.music));
-  const isMultipleAttachments = $derived(post.group.length > 1 && hasAttachments);
+  const hasAttachments = $derived(post.group.some((p) => p.video || p.photo || p.round));
+
+  const onScroll = () => {
+    if (!rootEl) return;
+    rootEl.style.setProperty("--content-height", `${contentEl?.offsetHeight}px`);
+  };
+
+  onMount(() => {
+    window.addEventListener("scroll", onScroll);
+  });
+
+  onDestroy(() => {
+    window.removeEventListener("scroll", onScroll);
+  });
 </script>
 
 <style lang="scss">
@@ -85,37 +94,38 @@
   width: 100%;
   box-sizing: border-box;
 
+  --content-height: 0;
+
   &--repost {
     border-left: 2px solid var(--color-main);
     padding-left: var(--gap);
   }
 
   &__content {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: var(--gap);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    // position: sticky;
+    // top: calc(var(--header-height));
+    background-color: white;
+    z-index: 1;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
   }
 
   &__footer {
     margin-top: auto;
   }
 
-  &__attachments {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: var(--gap);
-
-      &--multiple {
-          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      }
-  }
-
   :global(.user-avatar) {
     position: sticky;
-    top: calc(var(--gap) + 43px);
+    top: calc(var(--gap) + var(--header-height));
   }
-
 
   :global .post__avatar {
     width: 50px;

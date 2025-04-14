@@ -1,4 +1,3 @@
-import * as telegram from 'telegram';
 import 'reflect-metadata';
 import { Expose, plainToInstance, Transform, Type } from "class-transformer";
 import { ChannelModel } from "./channel.model";
@@ -30,8 +29,16 @@ export class MessageModel {
 	authorId!: string;
 
 	@Expose()
-	@Transform(({ obj }) => +String(obj.fromId?.userId || obj.peerId?.userId))
+	@Transform(({ obj }) => +String(obj.fromId?.userId || obj.fromId?.channelId || obj.peerId?.userId))
 	fromId!: string;
+
+  @Expose()
+  @Transform(({ obj }) => "channelId" in (obj.fromId || {}))
+  fromChannel!: boolean;
+
+  @Expose()
+  @Transform(({ obj }) => "userId" in (obj.fromId || {}))
+  fromUser!: boolean;
 
 	@Expose({ name: '_chat' })
 	@Type(() => ChannelModel)
@@ -43,7 +50,7 @@ export class MessageModel {
 
 	@Expose()
 	@Transform(({ obj }) => plainToInstance(UserModel, obj._sender, { excludeExtraneousValues: true }))
-	user!: UserModel;
+	user!: UserModel | null;
 
 	@Expose()
 	views!: number;
@@ -100,8 +107,6 @@ export class MessageModel {
     return plainToInstance(FileModel, obj.media, { excludeExtraneousValues: true });
   })
   file!: FileModel | null
-	
-	group: MessageModel[] = [];
 
   get hasAttachments() {
     const fields = ['video', 'photo', 'music', 'sticker', 'file'];
@@ -117,6 +122,18 @@ export class MessageModel {
 	@Expose({ name: 'out' })
 	isOut!: boolean;
 
+  @Expose()
+  @Transform(({ obj }) => obj.replies?.replies || 0)
+  commentariesCount!: number;
+
+  @Expose()
+  @Transform(({ obj }) => obj.replyTo?.replyToTopId 
+    ? obj.replyTo?.replyToMsgId || null
+    : null)
+  replyToId!: number | null;
+
+  replies: MessageModel[] = [];
+	group: MessageModel[] = [];
 	parentPost: MessageModel | null = null;
 	previousPost: MessageModel | null = null;
 

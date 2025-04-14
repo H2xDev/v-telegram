@@ -60,7 +60,7 @@
   display: inline-flex;
   font: inherit;
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: var(--corners);
   padding: 5px 10px;
   border-bottom: 1px solid var(--color-main);
   background: var(--color-main);
@@ -77,7 +77,6 @@
   &--flat {
     background: transparent;
     color: var(--color-main);
-    border-radius: 4px;
     border: 1px solid transparent;
 
     &:hover {
