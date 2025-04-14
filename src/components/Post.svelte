@@ -8,40 +8,39 @@
     <VkAvatar class="post__avatar" id={post.authorId} />
   {/if}
 
-  <div class="post__body">
-    <div class="post__content" bind:this={contentEl}>
-      {#if !noTitle}
-      <p class="t-main">
-        { post.channel.title }
-      </p>
-      {/if}
+  <div class="post__content" bind:this={contentEl}>
+    {#if !noTitle}
+    <p class="t-main">
+      { post.channel.title }
+    </p>
+    {/if}
 
-      {#if post.message}
-        <div class="small-text">
-          {@html formatMarkdown(post.message, post.raw.entities || []) }
-        </div>
-      {/if}
-
-      {#if hasAttachments}
-        <Attachments class="post__attachments" { post } />
-      {/if}
-
-      {#if hasMusic}
-        <div class="post__music-list">
-          {#each post.group as subPost}
-            {#if subPost.music}
-              <SmallMusicPlayer post={subPost} />
-            {/if}
-          {/each}
-        </div>
-      {/if}
-
-      <div class="post__footer">
-        <span class="post__date small-text-hint">
-          { post.date.toLocaleString() }
-        </span>
+    {#if post.message}
+      <div class="small-text">
+        {@html formatMarkdown(post.message, post.raw.entities || []) }
       </div>
+    {/if}
+
+    {#if hasAttachments}
+      <Attachments class="post__attachments" { post } />
+    {/if}
+
+    {#if hasMusic}
+      <div class="post__music-list">
+        {#each post.group as subPost}
+          {#if subPost.music}
+            <SmallMusicPlayer post={subPost} />
+          {/if}
+        {/each}
+      </div>
+    {/if}
+
+    <div class="post__footer">
+      <span class="post__date small-text-hint">
+        { post.date.toLocaleString() }
+      </span>
     </div>
+
     <CommentarySection { post } />
   </div>
 </div>
