@@ -33,7 +33,7 @@
 		"@types/node": "^22.14.0",
 		"class-transformer": "^0.5.1",
 		"reflect-metadata": "^0.2.2",
-		"telegram": "^2.26.21",
+		"telegram": "2.26.21",
 		"vite-plugin-git-commit-hash": "^1.0.7",
 		"vite-plugin-node-polyfills": "^0.23.0"
 	}
