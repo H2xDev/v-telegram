@@ -11,139 +11,139 @@ import { UserService } from "./user.service";
 const POSTS_PAGE_LIMIT = 100;
 
 export enum ChannelServiceEvents {
-	CHANNEL_UPDATED = 'channel-updated',
+  CHANNEL_UPDATED = 'channel-updated',
 }
 
 interface ChannelServiceEventsDeclaration {
-	[ChannelServiceEvents.CHANNEL_UPDATED]: ChannelModel;
+  [ChannelServiceEvents.CHANNEL_UPDATED]: ChannelModel;
 }
 
 export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration> {
-	static instance: ChannelService;
+  static instance: ChannelService;
 
-	private telegramService = new TelegramService;
-	private dbService = new DBService;
-	private groups: Record<string, MessageModel> = {};
+  private telegramService = new TelegramService;
+  private dbService = new DBService;
+  private groups: Record<string, MessageModel> = {};
 
-	channels: ChannelModel[] = [];
-	channelsMap: Record<string, ChannelModel> = {};
+  channels: ChannelModel[] = [];
+  channelsMap: Record<string, ChannelModel> = {};
 
-	constructor() {
-		if (ChannelService.instance) return ChannelService.instance;
-		super();
+  constructor() {
+    if (ChannelService.instance) return ChannelService.instance;
+    super();
     ChannelService.instance = this;
-	}
+  }
 
-	saveChannel(channel: ChannelModel) {
-		channel = Object.assign(new ChannelModel, channel);
-		this.channelsMap[channel.id] = channel;
+  saveChannel(channel: ChannelModel) {
+    channel = Object.assign(new ChannelModel, channel);
+    this.channelsMap[channel.id] = channel;
     this.channelsMap[+channel.raw.id.toString()] = channel;
-		this.dbService.save(channel, DBBanks.CHANNELS, 10);
-		this.trigger(ChannelServiceEvents.CHANNEL_UPDATED, channel);
-	}
+    this.dbService.save(channel, DBBanks.CHANNELS, 10);
+    this.trigger(ChannelServiceEvents.CHANNEL_UPDATED, channel);
+  }
 
-	async getChannel(username: string | number) {
-		if (this.channelsMap[username]) {
-			return this.channelsMap[username];
-		}
+  async getChannel(username: string | number) {
+    if (this.channelsMap[username]) {
+      return this.channelsMap[username];
+    }
 
-		const cachedData = await this.dbService.get(username, DBBanks.CHANNELS);
+    const cachedData = await this.dbService.get(username, DBBanks.CHANNELS);
 
-		if (cachedData && cachedData.data) {
-			const instance = Object.assign(new ChannelModel, cachedData.data);
-			instance.pinnedMessage = await this.getPinnedPost(instance.id);
-			instance.pinnedMessage.channel = instance;
-			this.channelsMap[username] = instance;
-			return instance as ChannelModel;
-		}
+    if (cachedData && cachedData.data) {
+      const instance = Object.assign(new ChannelModel, cachedData.data);
+      instance.pinnedMessage = await this.getPinnedPost(instance.id);
+      instance.pinnedMessage.channel = instance;
+      this.channelsMap[username] = instance;
+      return instance as ChannelModel;
+    }
 
-		const res = await this.telegramService.client.invoke(
-			new telegram.Api.channels.GetFullChannel({
-				channel: username,
-			}),
-		);
+    const res = await this.telegramService.client.invoke(
+      new telegram.Api.channels.GetFullChannel({
+        channel: username,
+      }),
+    );
 
-		const instance = plainToInstance(ChannelModel, Object.assign(res.chats[0], res.fullChat) as any, { excludeExtraneousValues: true });
-		instance.pinnedMessage = await this.getPinnedPost(instance.id);
+    const instance = plainToInstance(ChannelModel, Object.assign(res.chats[0], res.fullChat) as any, { excludeExtraneousValues: true });
+    instance.pinnedMessage = await this.getPinnedPost(instance.id);
 
-		if (instance.pinnedMessage) {
-			instance.pinnedMessage.channel = instance;
-		}
+    if (instance.pinnedMessage) {
+      instance.pinnedMessage.channel = instance;
+    }
 
-		this.saveChannel(instance);
+    this.saveChannel(instance);
 
-		return instance;
-	}
+    return instance;
+  }
 
-	async getPosts(id: any, lastPostId?: number) {
-		const newPosts = [];
+  async getPosts(id: any, lastPostId?: number) {
+    const newPosts = [];
 
-		for await (const post of this.telegramService.client.iterMessages(id, {
-			limit: POSTS_PAGE_LIMIT,
-			offsetId: lastPostId,
-		})) {
-			if (!this.isMessage(post)) continue;
-			newPosts.push(post);
-		}
+    for await (const post of this.telegramService.client.iterMessages(id, {
+      limit: POSTS_PAGE_LIMIT,
+      offsetId: lastPostId,
+    })) {
+      if (!this.isMessage(post)) continue;
+      newPosts.push(post);
+    }
 
-		return plainToInstance(MessageModel, newPosts, { excludeExtraneousValues: true })
-			.reverse()
-			.filter(this.assignGroup.bind(this))
-			.reverse();
-	}
+    return plainToInstance(MessageModel, newPosts, { excludeExtraneousValues: true })
+      .reverse()
+      .filter(this.assignGroup.bind(this))
+      .reverse();
+  }
 
-	async getChannelList() {
+  async getChannelList() {
     if (this.channels.length) {
       return this.channels;
     }
 
-		const list = (await this.telegramService.client.getDialogs())
-			.filter((d) => d.isChannel && !d.isGroup)
+    const list = (await this.telegramService.client.getDialogs())
+      .filter((d) => d.isChannel && !d.isGroup)
 
-		this.channels = plainToInstance(ChannelModel, list, { excludeExtraneousValues: true });
+    this.channels = plainToInstance(ChannelModel, list, { excludeExtraneousValues: true });
 
-		return this.channels;
-	}
+    return this.channels;
+  }
 
-	async leaveChannel(channelId: string) {
-		const channel = await this.getChannel(channelId);
-		if (!channel) {
-			throw new Error('Channel not found');
-		}
+  async leaveChannel(channelId: string) {
+    const channel = await this.getChannel(channelId);
+    if (!channel) {
+      throw new Error('Channel not found');
+    }
 
-		if (!channel.isSubscribed) {
-			return;
-		}
+    if (!channel.isSubscribed) {
+      return;
+    }
 
-		await this.telegramService.client.invoke(
-			new telegram.Api.channels.LeaveChannel({
-				channel: channelId,
-			}),
-		);
+    await this.telegramService.client.invoke(
+      new telegram.Api.channels.LeaveChannel({
+        channel: channelId,
+      }),
+    );
 
-		channel.isSubscribed = false;
-		this.saveChannel(channel);
-	}
+    channel.isSubscribed = false;
+    this.saveChannel(channel);
+  }
 
-	async joinChannel(channelId: string) {
-		const channel = await this.getChannel(channelId);
-		if (!channel) {
-			throw new Error('Channel not found');
-		}
+  async joinChannel(channelId: string) {
+    const channel = await this.getChannel(channelId);
+    if (!channel) {
+      throw new Error('Channel not found');
+    }
 
-		if (channel.isSubscribed) {
-			return;
-		}
+    if (channel.isSubscribed) {
+      return;
+    }
 
-		await this.telegramService.client.invoke(
-			new telegram.Api.channels.JoinChannel({
-				channel: channelId,
-			}),
-		);
+    await this.telegramService.client.invoke(
+      new telegram.Api.channels.JoinChannel({
+        channel: channelId,
+      }),
+    );
 
-		channel.isSubscribed = true;
-		this.saveChannel(channel);
-	}
+    channel.isSubscribed = true;
+    this.saveChannel(channel);
+  }
 
   async getComments(post: MessageModel, offsetId?: number, records: Record<number, MessageModel> = {}): Promise<MessageChunk> {
     const res = await this.telegramService.client.invoke(
@@ -192,49 +192,49 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
     };
   }
 
-	private async getPinnedPost(channelId: string) {
-		if (!channelId) {
-			return null;
-		}
+  private async getPinnedPost(channelId: string) {
+    if (!channelId) {
+      return null;
+    }
 
-		const filter = new telegram.Api.InputMessagesFilterPinned();
+    const filter = new telegram.Api.InputMessagesFilterPinned();
 
-		const res = await this.telegramService.client.invoke(
-			new telegram.Api.messages.Search({
-				filter,
-				limit: 1,
-				peer: channelId,
-				q: '',
-			}), 
-		) as any;
+    const res = await this.telegramService.client.invoke(
+      new telegram.Api.messages.Search({
+        filter,
+        limit: 1,
+        peer: channelId,
+        q: '',
+      }), 
+    ) as any;
 
-		if (!res.messages.length) {
-			return null;
-		}
+    if (!res.messages.length) {
+      return null;
+    }
 
-		return plainToInstance(MessageModel, res.messages[0], { excludeExtraneousValues: true });
-	}
+    return plainToInstance(MessageModel, res.messages[0], { excludeExtraneousValues: true });
+  }
 
-	private isMessage(message: any) {
-		return message.className === 'Message';
-	}
+  private isMessage(message: any) {
+    return message.className === 'Message';
+  }
 
-	private assignGroup(post: MessageModel) {
-		if (!post.groupedId) {
-			post.group.push(post);
-			post.parentPost = post;
-			return true;
-		}
+  private assignGroup(post: MessageModel) {
+    if (!post.groupedId) {
+      post.group.push(post);
+      post.parentPost = post;
+      return true;
+    }
 
-		if (post.groupedId in this.groups) {
-			this.groups[post.groupedId].group.push(post);
-			post.parentPost = this.groups[post.groupedId];
-			return false;
-		}
+    if (post.groupedId in this.groups) {
+      this.groups[post.groupedId].group.push(post);
+      post.parentPost = this.groups[post.groupedId];
+      return false;
+    }
 
-		this.groups[post.groupedId] = post;
-		post.group.push(post);
-		post.parentPost = post;
-		return true;
-	}
+    this.groups[post.groupedId] = post;
+    post.group.push(post);
+    post.parentPost = post;
+    return true;
+  }
 }
