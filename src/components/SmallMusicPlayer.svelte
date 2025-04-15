@@ -123,8 +123,11 @@
 <style lang="scss">
   .music-player {
     --percent: 0;
+
     display: grid;
     align-items: center;
+    padding: var(--gap);
+    border-radius: var(--corners);
     grid-template-columns: 16px 1fr;
     gap: var(--gap-small);
     width: 100%;

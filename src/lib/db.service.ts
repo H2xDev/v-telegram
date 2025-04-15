@@ -24,7 +24,7 @@ export interface CacheData {
 interface DBServiceEventsDeclaration {}
 
 export class DBService extends EventHandler<DBServiceEventsDeclaration> {
-	static instance = new DBService();
+	static instance: DBService;
 	
 	private blobs: Record<string | number, string> = {}
 	private savePromises: Record<string, Promise<any> | null> = {};

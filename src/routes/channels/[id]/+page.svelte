@@ -17,13 +17,9 @@
         About
       </VkDivider>
 
-      {#if !isLoading}
       <p>
         {@html formatMarkdown(channel?.about) }
       </p>
-      {:else}
-        <VkSpinner />
-      {/if}
 
       {#if channel?.pinnedMessage}
         <VkDivider tag="h2" class="divider">
@@ -93,16 +89,9 @@
   import { page } from "$app/state";
 
   const channelService = new ChannelService;
-  const { params } = page;
+  const { params, data } = page;
 
-  let channel: ChannelModel | null = $state(null);
-  let isLoading = $state(true);
-
-  channelService.getChannel(params.id!)
-    .then((newChannel: ChannelModel) => { channel = newChannel; })
-    .finally(() => {
-      isLoading = false;
-    });
+  let channel: ChannelModel | null = $state(data.channel);
 
   const onChannelUpdated = (updatedChannel: ChannelModel) => {
     if (updatedChannel.id !== params.id) return;

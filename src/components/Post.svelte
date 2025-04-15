@@ -35,10 +35,10 @@
     {/if}
 
     <div class="post__footer">
-      <Reactions { post } />
       <span class="post__date small-text-hint">
         { post.date.toLocaleString() }
       </span>
+      <Reactions { post } />
     </div>
 
     <CommentarySection { post } />
@@ -105,8 +105,15 @@
   &__footer {
     margin-top: auto;
     display: flex;
-    flex-direction: column;
     gap: var(--gap);
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  &__date {
+    flex-shrink: 0;
+    margin-bottom: 2px;
+    font-size: 10px;
   }
 
   :global(.user-avatar) {

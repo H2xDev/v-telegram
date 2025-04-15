@@ -54,6 +54,8 @@ export class MusicModel {
   })
   needRecalculateDuration!: boolean;
 
+  sourceId: string | null = null;
+
   get isSupported() {
     return MediaSource.isTypeSupported(this.mimeType);
   }

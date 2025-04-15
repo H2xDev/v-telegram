@@ -9,6 +9,7 @@ import { DBBanks, DBService } from './db.service';
 export enum MusicServiceEvents {
   MUSIC_CHANGED = 'music-changed',
   VOLUME_CHANGED = 'volume-changed',
+  PLAYLIST_CHANGED = 'playlist-changed',
   LOOP_CHANGED = 'loop-changed',
   PLAY_STARTED = 'play-started',
   PLAY_PAUSED = 'play-paused',
@@ -21,11 +22,13 @@ interface MusicServiceEventsDeclaration {
   [MusicServiceEvents.LOOP_CHANGED]: boolean;
   [MusicServiceEvents.PLAY_STARTED]: MusicModel;
   [MusicServiceEvents.PLAY_PAUSED]: MusicModel;
+  [MusicServiceEvents.PLAYLIST_CHANGED]: string | null;
 }
 
 const STORAGEABLE_SETTINGS = [
   'volume',
   'loop',
+  'playlist',
 ] as const;
 
 export const RECOMMENDED_CHANNELS = [
@@ -37,6 +40,7 @@ export interface MusicSettings {
   music: MusicModel | null;
   volume: number;
   loop: boolean;
+  playlist: string | null;
 }
 
 /**
@@ -55,6 +59,7 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
     music: null,
     volume: 1,
     loop: false,
+    playlist: 'me',
   }, {
     get: <T extends keyof MusicSettings>(target: MusicSettings, prop: T) => {
       const storageItem = `vt.musicService.${prop}`;
@@ -118,8 +123,8 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
     const audioElement = new Audio();
 
     audioElement.src = URL.createObjectURL(this.mediaSources[music.id]);
-    audioElement.addEventListener('play', this.onMusicPlay.bind(this, music, audioElement));
     audioElement.addEventListener('pause', this.trigger.bind(this, MusicServiceEvents.PLAY_PAUSED, music));
+    audioElement.addEventListener('play', this.onMusicPlay.bind(this, music, audioElement));
     audioElement.addEventListener('timeupdate', this.onMusicTimeUpdate.bind(this, audioElement));
 
     this.audioElements[music.id] = audioElement;
@@ -204,8 +209,6 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
         music.duration = mediaSource.duration;
       }, { once: true });
 
-      console.log('Loaded music from db', music.id);
-
       return;
     }
 
@@ -216,7 +219,6 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
       }
 
       buffer.push(chunk);
-
 		}
 
     const bufferToSave = buffer.reduce((acc, chunk) => {

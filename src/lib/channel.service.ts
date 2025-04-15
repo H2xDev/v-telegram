@@ -25,7 +25,7 @@ interface ChannelServiceEventsDeclaration {
 }
 
 export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration> {
-	static instance = new ChannelService();
+	static instance: ChannelService;
 
 	private telegramService = new TelegramService;
 	private dbService = new DBService;
@@ -37,6 +37,7 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
 	constructor() {
 		if (ChannelService.instance) return ChannelService.instance;
 		super();
+    ChannelService.instance = this;
 	}
 
 	saveChannel(channel: ChannelModel) {
