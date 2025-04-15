@@ -7,6 +7,7 @@ import { UserModel } from './user.model';
 import { MusicModel } from './music.model';
 import { StickerModel } from './sticker.model';
 import { FileModel } from './file.model';
+import { ReactionModel } from './reaction.model';
 
 export class MessageModel {
 	@Expose()
@@ -131,6 +132,10 @@ export class MessageModel {
     ? obj.replyTo?.replyToMsgId || null
     : null)
   replyToId!: number | null;
+
+  @Expose()
+  @Transform(({ obj }) => plainToInstance(ReactionModel, obj.reactions?.results || [], { excludeExtraneousValues: true }))
+  reactions!: ReactionModel[];
 
   replies: MessageModel[] = [];
 	group: MessageModel[] = [];

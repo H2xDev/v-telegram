@@ -4,10 +4,12 @@
   class:comment--has-comments={comment.replies.length > 0}
 >
   <div class="comment__body">
-    <VkAvatar
-      class="comment__avatar"
-      id={ comment.user?.id || comment.channel.id }
-    />
+    {#key comment.user?.id || comment.channel?.id }
+      <VkAvatar
+        class="comment__avatar"
+        id={ comment.user?.id || comment.channel.id }
+      />
+    {/key}
     <svelte:element
       this={ comment.user?.url || comment.channel?.url ? 'a' : 'span' }
       class="comment__name"
@@ -17,13 +19,14 @@
     </svelte:element>
 
     <div class="comment__message">
-      { comment.message }
+      {@html formatMarkdown(comment.message, comment.entities) }
 
       <Attachments class="comment__attachment" post={ comment } small />
     </div>
 
     <div class="comment__meta">
       { comment.date.toLocaleString() }
+      <Reactions post={ comment } />
     </div>
   </div>
 
@@ -41,6 +44,8 @@
   import type { MessageModel } from "$models/message.model";
   import VkAvatar from "./VkAvatar.svelte";
   import Attachments from './Attachments.svelte';
+  import Reactions from './Reactions.svelte';
+  import { formatMarkdown } from '@/lib/utils';
 
   interface Props {
     comment: MessageModel;

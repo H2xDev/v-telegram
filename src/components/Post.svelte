@@ -1,14 +1,13 @@
 <div 
   class="post"
   class:post--repost={repost}
-  bind:this={rootEl}
   id={post.id}
 >
   {#if !compact}
     <VkAvatar class="post__avatar" id={post.authorId} />
   {/if}
 
-  <div class="post__content" bind:this={contentEl}>
+  <div class="post__content">
     {#if !noTitle}
     <p class="t-main">
       { post.channel.title }
@@ -39,6 +38,7 @@
       <span class="post__date small-text-hint">
         { post.date.toLocaleString() }
       </span>
+      <Reactions { post } />
     </div>
 
     <CommentarySection { post } />
@@ -51,8 +51,8 @@
   import VkAvatar from "./VkAvatar.svelte";
   import SmallMusicPlayer from "./SmallMusicPlayer.svelte";
   import CommentarySection from "./CommentarySection.svelte";
-  import { onDestroy, onMount } from "svelte";
   import Attachments from "./Attachments.svelte";
+  import Reactions from "./Reactions.svelte";
 
   interface Props {
       post: MessageModel;
@@ -62,24 +62,9 @@
   }
 
   let { post, compact, noTitle, repost }: Props = $props();
-  let contentEl: HTMLDivElement | null = null;
-  let rootEl: HTMLDivElement | null = null;
 
   const hasMusic = $derived(post.group.some(p => p.music));
   const hasAttachments = $derived(post.group.some((p) => p.video || p.photo || p.round));
-
-  const onScroll = () => {
-    if (!rootEl) return;
-    rootEl.style.setProperty("--content-height", `${contentEl?.offsetHeight}px`);
-  };
-
-  onMount(() => {
-    window.addEventListener("scroll", onScroll);
-  });
-
-  onDestroy(() => {
-    window.removeEventListener("scroll", onScroll);
-  });
 </script>
 
 <style lang="scss">
@@ -119,6 +104,9 @@
 
   &__footer {
     margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
   }
 
   :global(.user-avatar) {

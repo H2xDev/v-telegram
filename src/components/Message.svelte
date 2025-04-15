@@ -36,6 +36,7 @@
         {/each}
       </div>
     {/if}
+    <Reactions { post } />
   </div>
   <div class="message__date">
     { post.date.toLocaleTimeString() }
@@ -51,6 +52,7 @@
   import RoundVideo from "./RoundVideo.svelte";
   import Sticker from "./Sticker.svelte";
   import FilePreview from "./FilePreview.svelte";
+  import Reactions from "./Reactions.svelte";
 
   interface Props {
     post: MessageModel;

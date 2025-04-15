@@ -1,13 +1,4 @@
 <div class="commentaries">
-  <div 
-    class="commentaries__list"
-    class:commentaries__list--hidden={hidden}
-  >
-    {#each comments as comment }
-      <Comment { comment } />
-    {/each}
-  </div>
-
   {#if !isAllOpened}
     <button
       class="commentaries__button"
@@ -21,6 +12,14 @@
       {/if}
     </button>
   {/if}
+  <div 
+    class="commentaries__list"
+    class:commentaries__list--hidden={hidden}
+  >
+    {#each comments as comment }
+      <Comment { comment } />
+    {/each}
+  </div>
 </div>
 
 <script lang="ts">
@@ -45,7 +44,7 @@
   const isAllOpened = $derived(post.commentariesCount - loadedCount <= 0);
 
   const applyList = ({ list, count, loadNext: newLoadNext }: CommentChunk) => {
-    comments = [...comments, ...list];
+    comments = [...list, ...comments];
     loadedCount += count;
     loadNext = newLoadNext;
   }

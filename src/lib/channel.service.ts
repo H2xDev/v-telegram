@@ -150,7 +150,7 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
 		this.saveChannel(channel);
 	}
 
-  async getComments(post: MessageModel, offsetId?: number) {
+  async getComments(post: MessageModel, offsetId?: number, records: Record<number, MessageModel> = {}): Promise<CommentChunk> {
     const res = await this.telegramService.client.invoke(
       new telegram.Api.messages.GetReplies({
         peer: post.raw.inputChat,
@@ -167,14 +167,13 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
       .forEach((channel) => this.saveChannel(channel));
 
     let messages = plainToInstance(MessageModel, res.messages as any[], { excludeExtraneousValues: true }).reverse();
-    const messageRecords: Record<number, MessageModel> = {};
     const count = messages.length;
     const lastId = messages[0]?.id;
 
     messages = messages.filter(this.assignGroup.bind(this));
 
     messages.forEach((message) => {
-      messageRecords[message.id] = message;
+      records[message.id] = message;
 
       if (message.fromUser) {
         message.user = users.find((user) => user.id === message.fromId.toString()) || null;
@@ -185,7 +184,7 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
       }
 
       if (message.replyToId) {
-        const targetMessage = messageRecords[message.replyToId] || messages.find((msg) => msg.id === message.replyToId);
+        const targetMessage = records[message.replyToId] || messages.find((msg) => msg.id === message.replyToId);
         if (!targetMessage) return;
         targetMessage.replies.push(message);
       }
@@ -194,7 +193,7 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
     return { 
       list: messages.filter((message) => !message.replyToId),
       count,
-      loadNext: () => this.getComments(post, lastId),
+      loadNext: () => this.getComments(post, lastId, records),
     };
   }
 
