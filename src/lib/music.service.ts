@@ -49,7 +49,7 @@ export interface MusicSettings {
  */
 export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
   static instance = new MusicService;
-	private telegramService = new TelegramService;
+  private telegramService = new TelegramService;
   private dbService = new DBService;
 
   private musicLists: Record<string, MessageModel[]> = {};
@@ -134,31 +134,31 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
   }
 
   private onMusicTimeUpdate(audioElement: HTMLAudioElement) {
-      const percent = audioElement.currentTime / this.settings.music!.duration;
-      if (percent < 1) return;
+    const percent = audioElement.currentTime / this.settings.music!.duration;
+    if (percent < 1) return;
 
-      audioElement.currentTime = 0;
+    audioElement.currentTime = 0;
 
-      if (this.settings.loop) {
-        audioElement.play();
-        return;
-      }
+    if (this.settings.loop) {
+      audioElement.play();
+      return;
+    }
 
-      audioElement.pause();
-      this.trigger(MusicServiceEvents.PLAYBACK_FINISHED, this.settings.music);
+    audioElement.pause();
+    this.trigger(MusicServiceEvents.PLAYBACK_FINISHED, this.settings.music);
   }
 
   private onMusicPlay(music: MusicModel, audioElement: HTMLAudioElement) {
-      if (this.settings.music && this.settings.music !== music) {
-        this.getAudio(this.settings.music)?.pause();
-      }
+    if (this.settings.music && this.settings.music !== music) {
+      this.getAudio(this.settings.music)?.pause();
+    }
 
-      this.beginStream(music!);
+    this.beginStream(music!);
 
-      this.settings.music = music;
-      audioElement.volume = this.settings.volume;
-      audioElement.loop = this.settings.loop;
-      this.trigger(MusicServiceEvents.PLAY_STARTED, music);
+    this.settings.music = music;
+    audioElement.volume = this.settings.volume;
+    audioElement.loop = this.settings.loop;
+    this.trigger(MusicServiceEvents.PLAY_STARTED, music);
   }
 
   /**
@@ -178,17 +178,17 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
     }
 
     const filter = new telegram.Api.InputMessagesFilterMusic()
-		const res = await this.telegramService.client.invoke(
-			new telegram.Api.messages.Search({
-				filter,
-				limit: 100,
-				peer: id,
+    const res = await this.telegramService.client.invoke(
+      new telegram.Api.messages.Search({
+        filter,
+        limit: 100,
+        peer: id,
         offsetId,
-				q: search,
-			})
+        q: search,
+      })
     ) as { messages: any[] };
 
-		const list = plainToInstance(MessageModel, res.messages, { excludeExtraneousValues: true })
+    const list = plainToInstance(MessageModel, res.messages, { excludeExtraneousValues: true })
     this.musicLists[hash] ??= [];
     this.musicLists[hash] = [...this.musicLists[hash], ...list];
 
@@ -216,7 +216,7 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
     const sourceBuffer = mediaSource.addSourceBuffer(music.mimeType);
 
     const { document: doc } = music;
-		const requestConfig = this.createMediaRequestConfig(doc);
+    const requestConfig = this.createMediaRequestConfig(doc);
 
     const cachedData = await this.dbService.get(music.id, DBBanks.MUSIC);
 
@@ -233,13 +233,13 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
     }
 
     const buffer = [];
-		for await (const chunk of this.telegramService.client.iterDownload(requestConfig as any)) {
+    for await (const chunk of this.telegramService.client.iterDownload(requestConfig as any)) {
       if (music.duration) {
-			  sourceBuffer.appendBuffer(chunk.buffer);
+        sourceBuffer.appendBuffer(chunk.buffer);
       }
 
       buffer.push(chunk);
-		}
+    }
 
     const bufferToSave = buffer.reduce((acc, chunk) => {
       const newBuffer = new Uint8Array(acc.length + chunk.length);
@@ -258,18 +258,18 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
     }, { once: true });
 
     this.dbService.save({ id: music.id, buffer: bufferToSave }, DBBanks.MUSIC);
-	}
+  }
 
   private createMediaRequestConfig(doc: telegram.Api.Document) {
-		return {
-			file: new telegram.Api.InputDocumentFileLocation({
-				id: (doc.id as any),
-				accessHash: (doc.accessHash as any),
-				fileReference: doc.fileReference,
-				thumbSize: '',
-			}),
-			requestSize: 1024 * 1024 / 2,
-			limit: doc.size,
-		}
-	}
+    return {
+      file: new telegram.Api.InputDocumentFileLocation({
+        id: (doc.id as any),
+        accessHash: (doc.accessHash as any),
+        fileReference: doc.fileReference,
+        thumbSize: '',
+      }),
+      requestSize: 1024 * 1024 / 2,
+      limit: doc.size,
+    }
+  }
 }
