@@ -14,8 +14,6 @@
     post: MessageModel
   }
   let { post }: Props = $props();
-
-  $inspect(post.reactions);
 </script>
 
 
@@ -23,6 +21,7 @@
   .reactions {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: var(--gap-small);
     color: var(--color-main);
 
