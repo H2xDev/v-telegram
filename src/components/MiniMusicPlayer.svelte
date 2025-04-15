@@ -68,6 +68,7 @@
     <VkButton
       inline
       label="Close"
+      onClick={toggleVisibility}
     />
   </div>
 </div>
@@ -75,16 +76,17 @@
 
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
+  import { ChannelService } from "@/lib/channel.service";
+  import { MusicService, MusicServiceEvents, RECOMMENDED_CHANNELS } from "@/lib/music.service";
   import type { MusicModel } from "$models/music.model";
   import type { MessageModel } from "$models/message.model";
-  import { MusicService, MusicServiceEvents, RECOMMENDED_CHANNELS } from "@/lib/music.service";
+  import type { ChannelModel } from "$models/channel.model";
 
   import MusicPlayer from "./MusicPlayer.svelte";
   import SmallMusicPlayer from "./SmallMusicPlayer.svelte";
   import VkButton from "./VkButton.svelte";
   import VkSpinner from "./VkSpinner.svelte";
   import VkTitleBar from "./VkTitleBar.svelte";
-  import { ChannelService } from "@/lib/channel.service";
 
   const musicService = new MusicService;
   const channelService = new ChannelService;
@@ -102,7 +104,7 @@
   let channelList: ChannelModel[] = $state([]);
   let recommendedChannels: ChannelModel[] = $state([]);
   let loadNext: MessageChunk["loadNext"] = () => musicService.getMusicList(musicService.settings.playlist);
-  let currentPlaylist: string = $state(musicService.settings.playlist);
+  let currentPlaylist: string | undefined = $state(musicService.settings.playlist);
 
   const playLabel = $derived(song ? `Currently playing: ${song.artist} - ${song.songName}` : 'No song playing');
 
