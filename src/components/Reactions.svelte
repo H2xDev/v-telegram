@@ -21,12 +21,16 @@
   .reactions {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: wrap-reverse;
+    justify-content: flex-end;
     gap: var(--gap-small);
     color: var(--color-main);
 
     &__icon {
-      font-size: 14px;
+      position: relative;
+      display: inline-block;
+      font-size: 12px;
+      filter: sepia(1) hue-rotate(180deg) brightness(0.9);
     }
 
     &:has(&__item:hover) &__item {
@@ -38,9 +42,17 @@
       align-items: center;
       cursor: pointer;
       transition: 0.2s;
+      flex-shrink: 0;
+      font-weight: 700;
+      gap: 2px;
+      font-size: 10px;
+      border-radius: var(--corners);
+      padding: 2px;
+      padding-right: 5px;
 
       &:hover {
         opacity: 1 !important;
+        background-color: var(--color-main-light);
       }
     }
   }

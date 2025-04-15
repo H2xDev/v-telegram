@@ -35,10 +35,10 @@
     {/if}
 
     <div class="post__footer">
+      <Reactions { post } />
       <span class="post__date small-text-hint">
         { post.date.toLocaleString() }
       </span>
-      <Reactions { post } />
     </div>
 
     <CommentarySection { post } />
