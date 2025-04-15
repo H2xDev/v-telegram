@@ -34,13 +34,14 @@ const STORAGEABLE_SETTINGS = [
 export const RECOMMENDED_CHANNELS = [
   'ambientdark',
   'space_ambient_music',
+  'phcorepublic',
 ];
 
 export interface MusicSettings {
   music: MusicModel | null;
   volume: number;
   loop: boolean;
-  playlist: string | null;
+  playlist?: string;
 }
 
 /**
@@ -163,7 +164,19 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
   /**
    * Returns music list from the current user
    */
-  async getMusicList(id: string | number = "me", offsetId?: number, search?: string) {
+  async getMusicList(id: string | number = "me", offsetId?: number, search: string = ''): Promise<MessageChunk> {
+    const hash = id.toString() + '-' + search;
+
+    if (!offsetId && this.musicLists[hash]?.length) {
+      const list = this.musicLists[hash];
+      return {
+        list,
+        count: list.length,
+        isFinal: false,
+        loadNext: () => this.getMusicList(id, list[list.length - 1]?.id, search),
+      }
+    }
+
     const filter = new telegram.Api.InputMessagesFilterMusic()
 		const res = await this.telegramService.client.invoke(
 			new telegram.Api.messages.Search({
@@ -176,10 +189,17 @@ export class MusicService extends EventHandler<MusicServiceEventsDeclaration> {
     ) as { messages: any[] };
 
 		const list = plainToInstance(MessageModel, res.messages, { excludeExtraneousValues: true })
-    this.musicLists[id] ??= [];
-    this.musicLists[id] = [...this.musicLists[id], ...list];
+    this.musicLists[hash] ??= [];
+    this.musicLists[hash] = [...this.musicLists[hash], ...list];
 
-    return list;
+    const isFinal = list.length < 100;
+
+    return {
+      list,
+      count: list.length,
+      isFinal,
+      loadNext: () => this.getMusicList(id, list[list.length - 1]?.id, search),
+    }
   }
 
   /**

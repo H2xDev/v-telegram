@@ -118,7 +118,6 @@
       .finally(() => isLoading = false);
 
     user = await userService.getUser(params.id!)
-    console.log(user);
 
     scrollWrapper.addEventListener("scroll", onScroll);
   });

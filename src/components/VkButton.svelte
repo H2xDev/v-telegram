@@ -1,6 +1,6 @@
 <svelte:element 
   this={tag}
-  class="button"
+  class="button { clazz }"
   class:button--flat={flat}
   class:button--inline={inline}
   class:button--big={big}
@@ -9,6 +9,7 @@
   { href }
 >
   <slot />
+  { label }
 </svelte:element>
 
 <script lang="ts">
@@ -16,8 +17,11 @@
     tag: string;
     flat?: boolean;
     inline?: boolean;
+    align?: 'flex-start' | 'center' | 'flex-end';
     big?: boolean;
     href?: string;
+    class?: string;
+    label?: string;
     onClickAsync?: (event: MouseEvent) => Promise<any>;
     onClick?: (event: MouseEvent) => any;
   }
@@ -30,6 +34,8 @@
     onClickAsync,
     onClick,
     href,
+    class: clazz = '',
+    label = '',
   }: Props = $props();
 
   let isLoading = $state(false);
@@ -69,6 +75,11 @@
   justify-content: center;
   box-sizing: border-box;
   font-weight: normal;
+  min-width: 64px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &:hover {
     text-decoration: none;

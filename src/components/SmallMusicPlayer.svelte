@@ -58,9 +58,6 @@
 
   const play = () => {
     if (!music) return;
-
-    console.log('play', post.music);
-
     if (!isPlaying) {
       music.play();
       return;

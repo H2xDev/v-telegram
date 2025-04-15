@@ -42,7 +42,7 @@
       {/if}
     </div>
 
-    <div class="music-page__aside" bind:this={sidebar}>
+    <div class="music-page__aside">
       <div class="music-page__list">
         <VkButton flat big align="flex-start" href="/music">
           My music
@@ -124,33 +124,30 @@
   let currentQuery: string = $state('');
   let currentSong: MusicModel | null = $state(musicService.settings.music);
   let channelList: ChannelModel[] = $state([]);
-  let sidebar: HTMLDivElement | null = $state(null);
   let sidebarHeight = $state(0);
   let recommendedChannels: ChannelModel[] = $state([]);
+  let loadNext: MessageChunk["loadNext"] = () => musicService.getMusicList(params?.id, undefined, currentQuery);
 
-  const appendMusic = (newMusic: MessageModel[]) => {
-    if (newMusic.length === 0) {
-      isFinal = true;
-      return;
-    }
-
-    musicList = [...musicList, ...newMusic];
+  const appendMusic = (chunk: MessageChunk) => {
+    isFinal = chunk.isFinal;
+    musicList = [...musicList, ...chunk.list];
+    loadNext = chunk.loadNext;
   }
+
+  const finishLoading = () => isLoading = false;
+  const finishChannelLoading = () => isChannelLoading = false;
 
   const onScroll = () => {
     if (isLoading || isFinal) return;
 
     if (window.scrollY + window.innerHeight > document.body.offsetHeight - 100) {
       isLoading = true;
-      musicService
-        .getMusicList(params?.id, musicList[musicList.length - 1].id, currentQuery)
-        .then(appendMusic)
-        .finally(() => isLoading = false);
+      loadNext().then(appendMusic).finally(finishLoading);
     }
   }
 
   const loadMusicList = async () => {
-    musicList = await musicService.getMusicList(params?.id, undefined, currentQuery).finally(() => isLoading = false);
+    loadNext().then(appendMusic).finally(finishLoading);
     musicService.on(MusicServiceEvents.MUSIC_CHANGED, (music: MusicModel | null) => {
       currentSong = music;
     });
@@ -173,7 +170,7 @@
   }
 
   const loadChannels = async () => {
-    channelList = await channelService.getChannelList().finally(() => isChannelLoading = false);
+    channelList = await channelService.getChannelList();
     recommendedChannels = await Promise.all(RECOMMENDED_CHANNELS.map(channelService.getChannel.bind(channelService)));
   }
 
@@ -192,10 +189,15 @@
     musicService.settings.music = musicList[currentIndex - 1]?.music;
   }
 
+  const changeCurrentPlaylist = () => {
+    musicService.settings.playlist = params?.id || 'me';
+  }
+
+  onDestroy(musicService.on(MusicServiceEvents.PLAY_STARTED, changeCurrentPlaylist))
   onMount(async () => {
     window.addEventListener('scroll', onScroll);
     loadMusicList();
-    loadChannels();
+    loadChannels().finally(finishChannelLoading);
   });
 
   onDestroy(() => {

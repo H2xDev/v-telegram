@@ -10,12 +10,6 @@ import { UserService } from "./user.service";
 
 const POSTS_PAGE_LIMIT = 100;
 
-export interface CommentChunk {
-  list: MessageModel[];
-  count: number;
-  loadNext: () => Promise<CommentChunk>;
-}
-
 export enum ChannelServiceEvents {
 	CHANNEL_UPDATED = 'channel-updated',
 }
@@ -151,7 +145,7 @@ export class ChannelService extends EventHandler<ChannelServiceEventsDeclaration
 		this.saveChannel(channel);
 	}
 
-  async getComments(post: MessageModel, offsetId?: number, records: Record<number, MessageModel> = {}): Promise<CommentChunk> {
+  async getComments(post: MessageModel, offsetId?: number, records: Record<number, MessageModel> = {}): Promise<MessageChunk> {
     const res = await this.telegramService.client.invoke(
       new telegram.Api.messages.GetReplies({
         peer: post.raw.inputChat,

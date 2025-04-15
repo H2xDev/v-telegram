@@ -69,7 +69,7 @@
 @use '../styles/mono_iconset.scss';
 
 .main-layout {
-	max-width: var(--container-width);
+	width: var(--container-width);
 	margin: 0 auto;
 	min-height: 100vh;
 	display: flex;

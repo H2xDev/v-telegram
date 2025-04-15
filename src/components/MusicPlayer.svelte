@@ -62,7 +62,6 @@
 <script lang="ts">
   import { MusicService, MusicServiceEvents } from "$lib/music.service";
   import { formatTime } from "$lib/utils";
-  import type { MessageModel } from "$models/message.model";
   import { onDestroy, onMount, tick } from "svelte";
   import TrackControl from "./TrackControl.svelte";
   import type { MusicModel } from "$models/music.model";
@@ -85,7 +84,7 @@
 
   let isPlaying = $state(audio ? !audio.paused : false);
   let isDragging = $state(false);
-  let percent = $state((audio?.currentTime || 0) / music!.duration);
+  let percent = $state((audio?.currentTime || 0) / music?.duration);
   let playedTime = $state('');
   let volume = $state(musicService.settings.volume);
   let loop = $state(musicService.settings.loop);

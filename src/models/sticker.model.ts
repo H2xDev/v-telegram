@@ -21,7 +21,6 @@ export class StickerModel {
   isVideo!: boolean;
 
   getUrl() {
-    console.log(this.document);
     return new MediaService().downloadMedia(this.document);
   }
 }
